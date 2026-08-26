@@ -1,0 +1,81 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: route-ms-auth
+          uri: lb://ms-auth
+          predicates:
+            - Path=/api/v1/auth/**
+
+        - id: route-ms-product
+          uri: lb://ms-product
+          predicates:
+            - Path=/api/products/**, /api/v1/products/**
+
+        - id: route-ms-inventory
+          uri: lb://ms-inventory
+          predicates:
+            - Path=/api/inventory/**, /api/v1/inventory/**
+
+        - id: route-ms-cart
+          uri: lb://ms-cart
+          predicates:
+            - Path=/api/cart/**, /api/v1/cart/**
+
+        - id: route-ms-order
+          uri: lb://ms-order
+          predicates:
+            - Path=/api/orders/**, /api/v1/orders/**
+
+        - id: route-ms-payment
+          uri: lb://ms-payment
+          predicates:
+            - Path=/api/payments/**, /api/v1/payments/**
+
+        - id: route-ms-shipping
+          uri: lb://ms-shipping
+          predicates:
+            - Path=/api/shipping/**, /api/v1/shipping/**
+
+        - id: route-ms-notification
+          uri: lb://ms-notification
+          predicates:
+            - Path=/api/notifications/**, /api/v1/notifications/**
+
+        - id: route-ms-review
+          uri: lb://ms-review
+          predicates:
+            - Path=/api/reviews/**, /api/v1/reviews/**
+
+        - id: route-ms-analytics
+          uri: lb://ms-analytics
+          predicates:
+            - Path=/api/analytics/**, /api/v1/analytics/**
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

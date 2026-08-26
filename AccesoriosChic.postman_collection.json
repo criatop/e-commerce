@@ -1,0 +1,991 @@
+{
+	"info": {
+		"name": "Accesorios Chic - E-Commerce API",
+		"description": "Coleccion completa de endpoints del e-commerce de accesorios femeninos.\n\nTodos los endpoints pasan por el API Gateway en localhost:9000.\n\nPaso 1: Ejecutar Register o Login para obtener el JWT token.\nPaso 2: Usar los endpoints de cada servicio en orden logico.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:9000",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Maria\",\n  \"email\": \"maria@chic.cl\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.token) {",
+									"    pm.environment.set('token', json.datos.token);",
+									"    pm.environment.set('userId', json.datos.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"maria@chic.cl\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.token) {",
+									"    pm.environment.set('token', json.datos.token);",
+									"    pm.environment.set('userId', json.datos.email);",
+									"    pm.environment.set('userName', json.datos.nombre);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2. Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.length > 0) {",
+									"    pm.environment.set('productId', json.datos[0].id);",
+									"    pm.environment.set('productSku', json.datos[0].sku);",
+									"    pm.environment.set('productName', json.datos[0].name);",
+									"    pm.environment.set('productPrice', json.datos[0].price);",
+									"    pm.environment.set('categoryId', json.datos[0].category);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "{{productId}}"]
+						}
+					}
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products/search?name=collar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "search"],
+							"query": [
+								{
+									"key": "name",
+									"value": "collar"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Products by Category",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products/category/{{categoryId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "category", "{{categoryId}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Product (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sku\": \"PRB-001\",\n  \"name\": \"Pendiente Prueba\",\n  \"description\": \"Pendiente de prueba tecnica\",\n  \"price\": 9990,\n  \"category\": \"{{categoryId}}\",\n  \"imageUrl\": \"https://img.tienda/pendiente-test.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('cartId', json.datos.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}/items",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}", "items"]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Quantity",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}/items/{{productId}}?quantity=3",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}", "items", "{{productId}}"],
+							"query": [
+								{
+									"key": "quantity",
+									"value": "3"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}/items/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}", "items", "{{productId}}"]
+						}
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"shippingAddress\": \"Av. Providencia 1234, Santiago\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('orderId', json.datos.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Orders by User",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "user", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/status?status=CONFIRMED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "status"],
+							"query": [
+								{
+									"key": "status",
+									"value": "CONFIRMED"
+								}
+							]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status updated', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json.exitoso).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "cancel"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Payments",
+			"item": [
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"userId\": \"{{userId}}\",\n  \"amount\": 39980,\n  \"method\": \"CREDIT_CARD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('paymentId', json.datos.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Payment by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments", "{{paymentId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Payments by Order",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/order/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments", "order", "{{orderId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Payments by User",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments", "user", "{{userId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Shipping",
+			"item": [
+				{
+					"name": "Create Shipment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"userId\": \"{{userId}}\",\n  \"address\": \"Av. Providencia 1234\",\n  \"city\": \"Santiago\",\n  \"postalCode\": \"7500000\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('shipmentId', json.datos.id);",
+									"    pm.environment.set('trackingNumber', json.datos.trackingNumber);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Shipment by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping/{{shipmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping", "{{shipmentId}}"]
+						}
+					}
+				},
+				{
+					"name": "Track Shipment",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping/track/{{trackingNumber}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping", "track", "{{trackingNumber}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Shipments by User",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping", "user", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Shipment Status",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping/{{shipmentId}}/status?status=IN_TRANSIT",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping", "{{shipmentId}}", "status"],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_TRANSIT"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Inventory",
+			"item": [
+				{
+					"name": "Get All Inventory",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inventory"]
+						}
+					}
+				},
+				{
+					"name": "Get Stock by Product SKU",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory/COL-001",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inventory", "COL-001"]
+						}
+					}
+				},
+				{
+					"name": "Create Inventory Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"PRB-001\",\n  \"productName\": \"Pendiente Prueba\",\n  \"quantity\": 50,\n  \"lowStockThreshold\": 10\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inventory"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Reviews",
+			"item": [
+				{
+					"name": "Create Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"userId\": \"{{userId}}\",\n  \"rating\": 5,\n  \"comment\": \"Excelente producto, muy bonito!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('reviewId', json.datos.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Reviews by Product",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/product/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "product", "{{productId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get All Reviews",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Notifications",
+			"item": [
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "notifications"]
+						}
+					}
+				},
+				{
+					"name": "Send Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"EMAIL\",\n  \"recipientEmail\": \"{{userId}}\",\n  \"subject\": \"Oferta especial\",\n  \"body\": \"Tienes un 20% de descuento en tu proxima compra!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "notifications"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "10. Analytics",
+			"item": [
+				{
+					"name": "Get Sales Records",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/sales",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "sales"]
+						}
+					}
+				},
+				{
+					"name": "Get User Activities",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/activities",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "activities"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Flujo Completo (E2E)",
+			"description": "Ejecutar estos requests en orden para probar el flujo completo de compra. Los valores se auto-asignan via scripts.",
+			"item": [
+				{
+					"name": "1/7 - Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"maria@chic.cl\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.token) {",
+									"    pm.environment.set('token', json.datos.token);",
+									"    pm.environment.set('userId', json.datos.email);",
+									"    console.log('Token set. User: ' + json.datos.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "2/7 - Get Products",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.length > 0) {",
+									"    pm.environment.set('productId', json.datos[0].id);",
+									"    pm.environment.set('productName', json.datos[0].name);",
+									"    pm.environment.set('productPrice', json.datos[0].price);",
+									"    console.log('Product set: ' + json.datos[0].name + ' (SKU: ' + json.datos[0].sku + ')');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "3/7 - Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{userId}}/items",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{userId}}", "items"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"console.log('Cart total: ' + (json.datos ? json.datos.totalAmount : 'N/A'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "4/7 - Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"shippingAddress\": \"Av. Providencia 1234, Santiago\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('orderId', json.datos.id);",
+									"    console.log('Order created: ' + json.datos.id + ' Status: ' + json.datos.status);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "5/7 - Process Payment (triggers Feign PENDING->PAID + Kafka events)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"userId\": \"{{userId}}\",\n  \"amount\": 39980,\n  \"method\": \"CREDIT_CARD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"console.log('Payment processed: ' + (json.datos ? json.datos.status : 'N/A'));",
+									"console.log('Feign: Payment -> Order update to PAID');",
+									"console.log('Kafka: payment.completed -> notification, analytics, shipping');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "6/7 - Create Shipment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"userId\": \"{{userId}}\",\n  \"address\": \"Av. Providencia 1234\",\n  \"city\": \"Santiago\",\n  \"postalCode\": \"7500000\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipping",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipping"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos) {",
+									"    pm.environment.set('trackingNumber', json.datos.trackingNumber);",
+									"    console.log('Tracking: ' + json.datos.trackingNumber);",
+									"    console.log('Carrier: ' + json.datos.carrier);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "7/7 - Dejar Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"userId\": \"{{userId}}\",\n  \"rating\": 5,\n  \"comment\": \"Comprueba todo el flujo E2E - Excelente!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log('=== E2E Flow Complete! ===');",
+									"console.log('Services involved:');",
+									"console.log('  Auth -> register/login (JWT)');",
+									"console.log('  Product -> catalog query');",
+									"console.log('  Cart -> add items');",
+									"console.log('  Order -> create (Feign: Product, Inventory) + Kafka: order.created');",
+									"console.log('  Payment -> process (Feign: Order PENDING->PAID) + Kafka: payment.completed');",
+									"console.log('  Shipping -> create (auto via Kafka or manual)');",
+									"console.log('  Review -> create');",
+									"console.log('  Notification -> email confirmations (Kafka consumer)');",
+									"console.log('  Analytics -> sales/user data (Kafka consumer)');",
+									"console.log('  Inventory -> stock management (Kafka consumer)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}
