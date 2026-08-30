@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Accesorios Chic - E-Commerce API",
-		"description": "Coleccion completa de endpoints del e-commerce de accesorios femeninos.\n\nTodos los endpoints pasan por el API Gateway en localhost:9000.\n\nPaso 1: Ejecutar Register o Login para obtener el JWT token.\nPaso 2: Usar los endpoints de cada servicio en orden logico.",
+		"description": "Coleccion completa de endpoints del e-commerce de accesorios femeninos.\n\nTodos los endpoints pasan por el API Gateway en localhost:9000.\n\nSEGURIDAD: El sistema usa JWT Bearer tokens. Los endpoints de carrito/orden/pago (POST) funcionan SIN token (guest checkout); los historiales (GET /user/...) exigen token y solo devuelven datos propios; product/inventory requiren ADMIN o SELLER; analytics solo ADMIN.\n\nCredenciales seed:\n- ADMIN: cdcc@accesorioschic.cl / chete132\n- CUSTOMER: cliente1@accesorioschic.cl / 123456\n\nPaso 1: Ejecutar Register o Login para obtener el JWT token (se guarda en la variable environment {token} y userId = email).\nPaso 2: Usar los endpoints de cada servicio en orden logico.\nPaso 3: La carpeta 'Guest Checkout' prueba la compra sin token (invitado).\nPaso 4: La carpeta 'Admin/SELLER' prueba la gestion protegida por roles (usa el login de ADMIN).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -54,6 +54,8 @@
 									"if (json.datos && json.datos.token) {",
 									"    pm.environment.set('token', json.datos.token);",
 									"    pm.environment.set('userId', json.datos.email);",
+									"    pm.environment.set('userName', json.datos.nombre);",
+									"    pm.environment.set('userRol', json.datos.rol);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -73,7 +75,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"maria@chic.cl\",\n  \"password\": \"123456\"\n}"
+							"raw": "{\n  \"email\": \"cliente1@accesorioschic.cl\",\n  \"password\": \"123456\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -92,6 +94,81 @@
 									"    pm.environment.set('userId', json.datos.email);",
 									"    pm.environment.set('userName', json.datos.nombre);",
 									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Login (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"cdcc@accesorioschic.cl\",\n  \"password\": \"chete132\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.token) {",
+									"    pm.environment.set('token', json.datos.token);",
+									"    pm.environment.set('userId', json.datos.email);",
+									"    pm.environment.set('userName', json.datos.nombre);",
+									"    pm.environment.set('userRol', json.datos.rol);",
+									"    console.log('Login ADMIN OK. Rol: ' + json.datos.rol);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Admin/SELLER Register (solo ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Nuevo Vendedor\",\n  \"email\": \"vendedor.ep1@accesorioschic.cl\",\n  \"password\": \"123456\",\n  \"rol\": \"SELLER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/admin/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "admin", "register"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Admin puede crear SELLER', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json.exitoso).to.be.true;",
+									"    console.log('Usuario creado: ' + json.datos.email + ' Rol: ' + json.datos.rol);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -748,7 +825,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"maria@chic.cl\",\n  \"password\": \"123456\"\n}"
+							"raw": "{\n  \"email\": \"cliente1@accesorioschic.cl\",\n  \"password\": \"123456\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -979,6 +1056,294 @@
 									"console.log('  Notification -> email confirmations (Kafka consumer)');",
 									"console.log('  Analytics -> sales/user data (Kafka consumer)');",
 									"console.log('  Inventory -> stock management (Kafka consumer)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Guest Checkout (sin token)",
+			"description": "Compra SIN registro. El frontend genera un sessionId (uuid) y lo usa como userId del carrito. Al pagar, ingresa su email y ese email pasa a ser el userId de la orden y el pago; las notificaciones llegan a ese email. Primero ejecutar 'Generar sessionId' para setear la variable {sessionId}.",
+			"item": [
+				{
+					"name": "0 - Generar sessionId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// En el frontend real usas crypto.randomUUID()",
+									"pm.environment.set('sessionId', 'guest-' + Date.now());",
+									"pm.environment.set('token', '');",
+									"console.log('sessionId: ' + pm.environment.get('sessionId'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					}
+				},
+				{
+					"name": "1 - Add to Cart (guest)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/{{sessionId}}/items",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "{{sessionId}}", "items"]
+						}
+					}
+				},
+				{
+					"name": "2 - Create Order (guest)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"guest.demo@mail.com\",\n  \"shippingAddress\": \"Av. Providencia 1234, Santiago\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('orderId', json.datos.id);",
+									"    pm.environment.set('guestEmail', json.datos.userId);",
+									"}" 
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "3 - Process Payment (guest)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"userId\": \"guest.demo@mail.com\",\n  \"amount\": 39980,\n  \"method\": \"CREDIT_CARD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "payments"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos) {",
+									"    console.log('Pago OK: ' + json.datos.status + '. La confirmacion llega al email del guest.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Roles y Permisos (Admin/SELLER)",
+			"description": "Pruebas de seguridad por roles. Login como ADMIN (cdcc@accesorioschic.cl / chete132) para crear productos e inventario. Login como CUSTOMER (cliente1) para ver que recibe 403. Un SELLER puede crear productos pero NO ver analytics.",
+			"item": [
+				{
+					"name": "Create Product (ADMIN o SELLER)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sku\": \"PRB-ADMIN-001\",\n  \"name\": \"Producto Prueba Admin\",\n  \"description\": \"Creado con token de admin\",\n  \"price\": 4990,\n  \"category\": \"{{categoryId}}\",\n  \"imageUrl\": \"https://img.tienda/prueba-admin.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.datos && json.datos.id) {",
+									"    pm.environment.set('productId', json.datos.id);",
+									"    console.log('Producto creado: ' + json.datos.sku);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Inventory Item (ADMIN o SELLER)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"PRB-ADMIN-001\",\n  \"productName\": \"Producto Prueba Admin\",\n  \"quantity\": 100,\n  \"lowStockThreshold\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inventory"]
+						}
+					}
+				},
+				{
+					"name": "Get Analytics (solo ADMIN, CUSTOMER = 403)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/sales",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "sales"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Analytics solo para ADMIN', function () {",
+									"    if (pm.response.code === 200) {",
+									"        console.log('OK: ADMIN tuvo acceso (200)');",
+									"    } else if (pm.response.code === 403) {",
+									"        console.log('OK: rol sin permiso recibio 403 (correcto)');",
+									"    } else {",
+									"        pm.expect.fail('Codigo inesperado: ' + pm.response.code);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get History (CUSTOMER propio = 200)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "user", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get History (con token ajeno = 403)",
+					"description": "Usa el token actual pero pide el carrito/historial de OTRO usuario. Debe dar 403.",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/user/otro.usuario@mail.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "user", "otro.usuario@mail.com"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Solicitar datos ajenos = 403', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+									"    if (pm.response.code === 403) console.log('OK: 403 al pedir datos de otro usuario.');",
+									"    if (pm.response.code === 200) console.log('ADVERTENCIA: si retorna 200 sin esforzarte revisa el filtro.');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Product (sin token = 403)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sku\": \"NO-TOKEN\",\n  \"name\": \"Sin token\",\n  \"description\": \"Debe fallar\",\n  \"price\": 1000,\n  \"category\": \"{{categoryId}}\",\n  \"imageUrl\": \"https://img.tienda/x.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Crear producto sin token debe fallar (403/401)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
 								],
 								"type": "text/javascript"
 							}

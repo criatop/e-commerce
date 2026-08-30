@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody ProductRequest request) {
         ProductResponse product = productService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -52,12 +54,14 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable UUID id, @Valid @RequestBody ProductRequest request) {
         ProductResponse product = productService.update(id, request);
         return ResponseEntity.ok(ApiResponse.ok(product, "Producto actualizado exitosamente"));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ApiResponse<Void>> deactivate(@PathVariable UUID id) {
         productService.deactivate(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "Producto desactivado exitosamente"));

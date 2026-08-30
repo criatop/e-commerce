@@ -1,6 +1,7 @@
 package cl.ecommerce.payment.controller;
 
 import cl.ecommerce.common.dto.ApiResponse;
+import cl.ecommerce.common.security.SecurityUtils;
 import cl.ecommerce.payment.dto.PaymentRequest;
 import cl.ecommerce.payment.dto.PaymentResponse;
 import cl.ecommerce.payment.service.PaymentService;
@@ -40,6 +41,7 @@ public class PaymentController {
 
     @GetMapping("/user/{userId}")
     public ApiResponse<List<PaymentResponse>> getPaymentsByUser(@PathVariable String userId) {
+        SecurityUtils.requireSelfPrincipal(userId, "pagos");
         List<PaymentResponse> payments = paymentService.getPaymentsByUser(userId);
         return ApiResponse.ok(payments);
     }

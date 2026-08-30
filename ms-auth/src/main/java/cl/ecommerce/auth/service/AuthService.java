@@ -1,5 +1,6 @@
 package cl.ecommerce.auth.service;
 
+import cl.ecommerce.auth.dto.AdminRegisterRequest;
 import cl.ecommerce.auth.dto.AuthResponse;
 import cl.ecommerce.auth.dto.LoginRequest;
 import cl.ecommerce.auth.dto.RegisterRequest;
@@ -73,6 +74,34 @@ public class AuthService {
                 .email(user.getEmail())
                 .nombre(user.getNombre())
                 .rol(user.getRole().getName())
+                .build();
+    }
+
+    public AuthResponse registerAdmin(AdminRegisterRequest request) {
+        if (userRepository.findByEmail(request.email()).isPresent()) {
+            throw new BusinessException("El email ya está registrado");
+        }
+
+        Role role = roleRepository.findByName(request.rol())
+                .orElseThrow(() -> new BusinessException("Rol " + request.rol() + " no encontrado"));
+
+        User user = User.builder()
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .nombre(request.nombre())
+                .role(role)
+                .activo(true)
+                .build();
+
+        User saved = userRepository.save(user);
+
+        String token = jwtTokenProvider.generateToken(saved.getEmail(), saved.getNombre(), saved.getRole().getName());
+
+        return AuthResponse.builder()
+                .token(token)
+                .email(saved.getEmail())
+                .nombre(saved.getNombre())
+                .rol(saved.getRole().getName())
                 .build();
     }
 }

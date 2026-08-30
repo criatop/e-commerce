@@ -40,7 +40,9 @@ INSERT INTO users (email, password, nombre, role_id) VALUES
 ('valentina.lopez@hotmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye', 'Valentina López',       3),
 ('isidora.munoz@outlook.com',   '$2a$10$N9qo8uLOickgx2ZMRZoMye', 'Isidora Muñoz',         3),
 ('fernanda.diaz@gmail.com',     '$2a$10$N9qo8uLOickgx2ZMRZoMye', 'Fernanda Díaz',         3),
-('catalina.reyes@gmail.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMye', 'Catalina Reyes',        3);
+('catalina.reyes@gmail.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMye', 'Catalina Reyes',        3),
+('cdcc@accesorioschic.cl',      '$2a$10$m6yuUQQUFF2Y/awkEv3dEeYwVXipgt5fBOXU3K6B.YOhjeQOFj.ba', 'Admin CDC',            1),
+('cliente1@accesorioschic.cl',  '$2a$10$P.SptCP3wHbJopS/S0qN2OzN58UTGWskmw3/SWtE4HvyP694EGqVK', 'Cliente Prueba',       3);
 
 INSERT INTO audit_log (user_id, accion, ip_address) VALUES
 (1, 'LOGIN',           '192.168.1.10'),

@@ -167,6 +167,53 @@ Todos los endpoints se acceden via `http://localhost:9000`:
 
 ---
 
+## Seguridad y Control de Roles
+
+El sistema usa **JWT Bearer tokens** junto con **Spring Security + `@PreAuthorize`** para controlar el acceso. Existen 3 roles:
+
+| Rol | Permisos |
+|---|---|
+| `ADMIN` | Todo: gestionar productos/inventario, ver analytics, crear ADMIN/SELLER |
+| `SELLER` | Crear/editar/desactivar productos, gestionar inventario |
+| `CUSTOMER` | Comprar (carrito, ordenes, pagos), ver historial propio, dejar reviews |
+
+### Matriz de acceso por endpoint
+
+| Grupo de endpoints | Acceso |
+|---|---|
+| `POST /api/v1/auth/register`, `/login` | **Público** |
+| `POST /api/v1/auth/admin/register` | **Solo ADMIN** |
+| `GET /api/products/**`, `GET /api/reviews/**`, `GET /api/inventory/**` | **Público** (catalogo visible sin login) |
+| `POST /api/products`, `PUT /api/products/{id}`, `DELETE /api/products/{id}` | **ADMIN o SELLER** |
+| `POST /api/inventory` (create), `PUT /api/inventory/{productId}` | **ADMIN o SELLER** |
+| `GET /api/analytics/**` | **Solo ADMIN** |
+| Armar carrito: `POST/PUT/DELETE /api/cart/{userId}/...` | **Público** (guest checkout) |
+| `POST /api/orders`, `POST /api/payments` | **Público** (guest checkout) |
+| Historial: `GET /api/cart/{userId}`, `GET /api/orders/user/{userId}`, `GET /api/payments/user/{userId}` | **Token obligatorio + solo datos propios** |
+| Resto (leer orden por id, cancels, etc.) | **Token obligatorio** |
+
+### Endpoints internos (comunicacion entre microservicios, sin token)
+
+Estos endpoints NO los usa el frontend. Son la comunicacion Feign interna, por eso estan habilitados sin token:
+
+| Endpoint | Origen → Destino |
+|---|---|
+| `POST /api/inventory/reserve` | ms-order → ms-inventory |
+| `POST /api/inventory/consume/{orderId}` | ms-order → ms-inventory |
+| `POST /api/inventory/release/{orderId}` | ms-order → ms-inventory |
+| `PUT /api/orders/{id}/status` | ms-payment → ms-order (marcar PAID) |
+
+### Codigos de error HTTP
+
+| Codigo | Significado | Como manejarlo en el frontend |
+|---|---|---|
+| `401` | No autenticado (falta token o token invalido) | Redirigir a login |
+| `403` | Autenticado pero sin permisos (rol insuficiente) | Mostrar vista "sin permisos" |
+| `400` | Error de negocio/validacion | Mostrar mensaje del `datos.mensaje` |
+| `404` | Recurso no encontrado | Mostrar mensaje |
+
+---
+
 ## Comunicacion Sincrona (Feign Clients)
 
 Los servicios se comunican de forma directa via HTTP usando Spring Cloud OpenFeign con load balancing via Eureka.
@@ -242,24 +289,44 @@ Stock Bajo ──stock.low─────────────────> m
 ## Flujo Completo de Compra
 
 ```
-1. POST /api/v1/auth/register     → Crear cuenta (retorna JWT)
-2. POST /api/v1/auth/login        → Login (retorna JWT)
-3. GET  /api/products              → Ver catalogo
-4. POST /api/cart/{userId}/items   → Agregar al carrito
-5. POST /api/orders                → Crear orden (PENDING)
+# --- Cliente registrado ---
+1. POST /api/v1/auth/login        → Login (retorna JWT + rol)
+2. GET  /api/products              → Ver catalogo
+3. POST /api/cart/{userId}/items   → Agregar al carrito   (Authorization: Bearer <token>)
+4. POST /api/orders                → Crear orden (PENDING)
    ├── Feign → ms-product (validar productos, obtener SKU)
    ├── Feign → ms-inventory (reservar stock)
    └── Kafka → order.created (analytics + inventory)
-6. POST /api/payments              → Procesar pago
+5. POST /api/payments              → Procesar pago
    ├── Feign → ms-order (actualizar a PAID)
    ├── Kafka → payment.completed
    │   ├── ms-notification (email confirmacion)
    │   ├── ms-shipping (crear envio)
    │   └── ms-analytics (registrar venta)
-7. PUT  /api/orders/{id}/status?status=SHIPPED  → Marcar enviado
-8. PUT  /api/orders/{id}/status?status=DELIVERED → Marcar entregado
-9. POST /api/reviews               → Dejar resena
+6. POST /api/reviews               → Dejar resena
+
+# --- Guest (sin cuenta) ---
+1. Generar sessionId (frontend lo guarda en localStorage)
+2. POST /api/cart/{sessionId}/items  → Agregar al carrito (igual que arriba)
+3. POST /api/orders                  → orden con userId = email ingresado
+4. POST /api/payments                → pago con userId = email
+   └── las notificaciones llegan al email indicado (Kafka)
 ```
+
+### Nota importante sobre `userId`
+El campo `userId` en carrito, orden y pago es **el email del usuario** (string), no un ID numerico. Para un usuario registrado se usa su email del login; para un guest se usa el email que ingresa al pagar (y como identificador temporal del carrito se usa un `sessionId` generado en el frontend).
+
+---
+
+## Guest Checkout (Compra sin registro)
+
+1. El frontend genera un `sessionId` unico (ej: `crypto.randomUUID()`) y lo persiste en `localStorage`.
+2. El carrito se arma con `userId = sessionId` (ej: `POST /api/cart/{sessionId}/items`). No requiere token.
+3. Al pagar, el usuario ingresa su **email** y direccion de envio.
+4. La orden y el pago se crean con `userId = email` (ej: `POST /api/orders` con `"userId": "cliente@mail.com"`).
+5. Las notificaciones (confirmacion, tracking) llegan al email del guest porque `OrderCreatedEvent`/`PaymentCompletedEvent` usan ese `userId`.
+6. **No se crea cuenta automaticamente.** Si despues el guest se registra con ese email, su historial queda asociado automaticamente.
+7. (Pendiente fase frontend) Fusionar el carrito guest al iniciar sesion.
 
 ---
 
@@ -284,9 +351,30 @@ Stock Bajo ──stock.low─────────────────> m
 | PostgreSQL password | `123` |
 | PostgreSQL puerto | `5433` |
 
-### Usuarios de seed data (SQL)
-- `camila.rosa@gmail.com` / `123456` (CUSTOMER)
-- `admin@chic.cl` / `admin123` (ADMIN)
+### Usuarios de seed data (SQL, `init-multi-db/02-create-auth.sql`)
+
+| Rol | Email | Password |
+|---|---|---|
+| **ADMIN** | `cdcc@accesorioschic.cl` | `chete132` |
+| **CUSTOMER** | `cliente1@accesorioschic.cl` | `123456` |
+
+> La password "admin123" de los seeds antiguos (`admin@chic.cl`) fue eliminada. Usar `cdcc@accesorioschic.cl` para pruebas de ADMIN.
+
+### Crear usuarios con rol ADMIN/SELLER
+
+Cualquier usuario **ADMIN** autenticado puede crear mas admins o vendedores sin tocar la base de datos:
+
+```
+POST /api/v1/auth/admin/register
+Authorization: Bearer <token-de-admin>
+
+{
+  "nombre": "Nuevo Vendedor",
+  "email": "vendedor@accesorioschic.cl",
+  "password": "123456",
+  "rol": "SELLER"      // "ADMIN" o "SELLER"
+}
+```
 
 ---
 
@@ -299,3 +387,9 @@ Stock Bajo ──stock.low─────────────────> m
 - **Serializacion**: `StringSerializer` / `JsonSerializer` (Spring Kafka)
 - **JWT**: jjwt 0.12.6 con algoritmo HS384, expiration 24h
 - **DB Schema**: `ddl-auto: update` en todos los servicios + scripts SQL de seed
+
+---
+
+## Frontend
+
+Para construir el frontend en HTML/CSS/JavaScript revisa **[GUIA-FRONTEND.md](GUIA-FRONTEND.md)**: incluye el helper `fetch`, manejo de JWT y roles, guest checkout, snippets por pagina y los errores tipicos a evitar. **El backend ya esta listo; solo falta el front.**

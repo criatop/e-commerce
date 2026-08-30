@@ -1,5 +1,6 @@
 package cl.ecommerce.auth.controller;
 
+import cl.ecommerce.auth.dto.AdminRegisterRequest;
 import cl.ecommerce.auth.dto.AuthResponse;
 import cl.ecommerce.auth.dto.LoginRequest;
 import cl.ecommerce.auth.dto.RegisterRequest;
@@ -8,6 +9,7 @@ import cl.ecommerce.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,5 +33,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.ok(response, "Login exitoso"));
+    }
+
+    @PostMapping("/admin/register")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(@Valid @RequestBody AdminRegisterRequest request) {
+        AuthResponse response = authService.registerAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(response, "Usuario creado con rol " + request.rol()));
     }
 }

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,11 +31,13 @@ public class InventoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<InventoryItem> createItem(@Valid @RequestBody InventoryRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(inventoryService.createItem(request));
     }
 
     @PutMapping("/{productId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<InventoryItem> updateItem(@PathVariable String productId,
                                                     @Valid @RequestBody InventoryRequest request) {
         return ResponseEntity.ok(inventoryService.updateItem(productId, request));

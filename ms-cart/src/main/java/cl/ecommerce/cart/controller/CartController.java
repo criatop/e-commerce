@@ -4,6 +4,7 @@ import cl.ecommerce.cart.dto.CartItemRequest;
 import cl.ecommerce.cart.dto.CartResponse;
 import cl.ecommerce.cart.service.CartService;
 import cl.ecommerce.common.dto.ApiResponse;
+import cl.ecommerce.common.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class CartController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<CartResponse>> getCart(@PathVariable String userId) {
+        SecurityUtils.requireSelfPrincipal(userId, "carrito");
         return ResponseEntity.ok(ApiResponse.ok(cartService.getCart(userId)));
     }
 

@@ -1,6 +1,7 @@
 package cl.ecommerce.order.controller;
 
 import cl.ecommerce.common.dto.ApiResponse;
+import cl.ecommerce.common.security.SecurityUtils;
 import cl.ecommerce.order.dto.CreateOrderRequest;
 import cl.ecommerce.order.dto.OrderResponse;
 import cl.ecommerce.order.model.OrderStatus;
@@ -34,6 +35,7 @@ public class OrderController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByUser(@PathVariable String userId) {
+        SecurityUtils.requireSelfPrincipal(userId, "ordenes");
         return ResponseEntity.ok(ApiResponse.ok(orderService.getOrdersByUser(userId)));
     }
 
