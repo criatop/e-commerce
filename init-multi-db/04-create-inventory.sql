@@ -1,6 +1,7 @@
 \c inventory_db;
 
 -- 1. ELIMINACIÓN
+DROP TABLE IF EXISTS inventory_reservations;
 DROP TABLE IF EXISTS stock_movements;
 DROP TABLE IF EXISTS inventory_items;
 
@@ -14,6 +15,17 @@ CREATE TABLE inventory_items (
     low_stock_threshold INT NOT NULL DEFAULT 10,
     warehouse_location  VARCHAR(100),
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE inventory_reservations (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id    VARCHAR(100) NOT NULL,
+    product_id  VARCHAR(50) NOT NULL,
+    quantity    INT NOT NULL DEFAULT 0,
+    status      VARCHAR(20) NOT NULL DEFAULT 'RESERVED'
+                CHECK (status IN ('RESERVED', 'CONSUMED', 'RELEASED')),
+    reserved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    settled_at  TIMESTAMP
 );
 
 CREATE TABLE stock_movements (

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
+
 @FeignClient(name = "ms-inventory", configuration = FeignClientConfig.class)
 public interface InventoryClient {
 
@@ -18,5 +20,6 @@ public interface InventoryClient {
     ApiResponse<Void> consumeStock(@PathVariable("orderId") String orderId);
 
     @PostMapping("/api/inventory/release/{orderId}")
-    ApiResponse<Void> releaseStock(@PathVariable("orderId") String orderId, @RequestBody InventoryReservationRequest request);
+    ApiResponse<Void> releaseStock(@PathVariable("orderId") String orderId,
+                                   @RequestBody List<InventoryReservationRequest.Item> items);
 }

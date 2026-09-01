@@ -30,7 +30,10 @@ public class OrderCancelledConsumer {
             log.info("Cancellation notification sent for order: {}", event.getOrderId());
         } catch (Exception e) {
             log.error("Failed to process order.cancelled event for order: {}", event.getOrderId(), e);
-            acknowledgment.acknowledge();
+            if (e instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException("Error procesando order.cancelled: " + event.getOrderId(), e);
         }
     }
 }

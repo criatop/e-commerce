@@ -6,8 +6,8 @@ spring:
     name: ms-payment
   datasource:
     url: jdbc:postgresql://localhost:5433/payment_db
-    username: postgres
-    password: "123"
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123}
   jpa:
     hibernate:
       ddl-auto: update
@@ -34,5 +34,5 @@ management:
         include: health,info
 
 jwt:
-  secret: "EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026"
+  secret: ${JWT_SECRET:EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026}
   expirationMs: 86400000

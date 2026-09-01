@@ -6,7 +6,10 @@ import cl.ecommerce.common.exception.NotFoundException;
 import cl.ecommerce.inventory.dto.InventoryRequest;
 import cl.ecommerce.inventory.dto.ProductQuantityDTO;
 import cl.ecommerce.inventory.model.InventoryItem;
+import cl.ecommerce.inventory.model.InventoryReservation;
+import cl.ecommerce.inventory.model.ReservationStatus;
 import cl.ecommerce.inventory.repository.InventoryRepository;
+import cl.ecommerce.inventory.repository.InventoryReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,6 +25,7 @@ import java.util.List;
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryReservationRepository reservationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public InventoryItem createItem(InventoryRequest request) {
@@ -75,6 +79,13 @@ public class InventoryService {
             inventoryItem.setQuantity(inventoryItem.getQuantity() - item.quantity());
             inventoryRepository.save(inventoryItem);
 
+            reservationRepository.save(InventoryReservation.builder()
+                    .orderId(orderId)
+                    .productId(item.productId())
+                    .quantity(item.quantity())
+                    .status(ReservationStatus.RESERVED)
+                    .build());
+
             int remaining = inventoryItem.getQuantity();
             if (remaining < inventoryItem.getLowStockThreshold()) {
                 StockLowEvent event = StockLowEvent.builder()
@@ -91,40 +102,70 @@ public class InventoryService {
 
     @Transactional
     public void consumeStock(String orderId) {
-        List<InventoryItem> itemsWithReservations = inventoryRepository.findAll().stream()
-                .filter(item -> item.getReservedQuantity() > 0)
-                .toList();
+        List<InventoryReservation> reservations = reservationRepository
+                .findByOrderIdAndStatus(orderId, ReservationStatus.RESERVED);
 
-        for (InventoryItem item : itemsWithReservations) {
-            log.info("Consumiendo reserva para producto: {} (reservado: {})", item.getProductName(), item.getReservedQuantity());
-            item.setReservedQuantity(0);
-            inventoryRepository.save(item);
+        for (InventoryReservation reservation : reservations) {
+            InventoryItem inventoryItem = inventoryRepository.findByProductId(reservation.getProductId())
+                    .orElseThrow(() -> new NotFoundException("Producto no encontrado: " + reservation.getProductId()));
+
+            int toConsume = Math.min(reservation.getQuantity(),
+                    inventoryItem.getReservedQuantity());
+
+            log.info("Consumiendo reserva para orden {} producto: {} (cantidad: {})",
+                    orderId, reservation.getProductId(), toConsume);
+
+            inventoryItem.setReservedQuantity(inventoryItem.getReservedQuantity() - toConsume);
+            inventoryRepository.save(inventoryItem);
+
+            reservation.setStatus(ReservationStatus.CONSUMED);
+            reservation.setSettledAt(LocalDateTime.now());
+            reservationRepository.save(reservation);
         }
     }
 
     @Transactional
     public void releaseStock(String orderId, List<ProductQuantityDTO> items) {
         for (ProductQuantityDTO item : items) {
+            InventoryReservation reservation = reservationRepository
+                    .findByOrderIdAndProductIdAndStatus(orderId, item.productId(), ReservationStatus.RESERVED)
+                    .orElseThrow(() -> new NotFoundException("No hay reserva activa para el producto: " + item.productId()));
+
             InventoryItem inventoryItem = inventoryRepository.findByProductId(item.productId())
                     .orElseThrow(() -> new NotFoundException("Producto no encontrado: " + item.productId()));
 
-            inventoryItem.setReservedQuantity(Math.max(0, inventoryItem.getReservedQuantity() - item.quantity()));
-            inventoryItem.setQuantity(inventoryItem.getQuantity() + item.quantity());
+            int toRelease = Math.min(item.quantity(), reservation.getQuantity());
+
+            inventoryItem.setReservedQuantity(Math.max(0, inventoryItem.getReservedQuantity() - toRelease));
+            inventoryItem.setQuantity(inventoryItem.getQuantity() + toRelease);
             inventoryRepository.save(inventoryItem);
+
+            reservation.setStatus(ReservationStatus.RELEASED);
+            reservation.setSettledAt(LocalDateTime.now());
+            reservationRepository.save(reservation);
         }
     }
 
     @Transactional
     public void releaseAllForOrder(String orderId) {
-        List<InventoryItem> itemsWithReservations = inventoryRepository.findAll().stream()
-                .filter(item -> item.getReservedQuantity() > 0)
-                .toList();
+        List<InventoryReservation> reservations = reservationRepository
+                .findByOrderIdAndStatus(orderId, ReservationStatus.RESERVED);
 
-        for (InventoryItem item : itemsWithReservations) {
-            log.info("Liberando reserva para producto: {} (reservado: {})", item.getProductName(), item.getReservedQuantity());
-            item.setQuantity(item.getQuantity() + item.getReservedQuantity());
-            item.setReservedQuantity(0);
-            inventoryRepository.save(item);
+        for (InventoryReservation reservation : reservations) {
+            InventoryItem inventoryItem = inventoryRepository.findByProductId(reservation.getProductId())
+                    .orElseThrow(() -> new NotFoundException("Producto no encontrado: " + reservation.getProductId()));
+
+            log.info("Liberando reserva para orden {} producto: {} (cantidad: {})",
+                    orderId, reservation.getProductId(), reservation.getQuantity());
+
+            inventoryItem.setQuantity(inventoryItem.getQuantity() + reservation.getQuantity());
+            inventoryItem.setReservedQuantity(Math.max(0,
+                    inventoryItem.getReservedQuantity() - reservation.getQuantity()));
+            inventoryRepository.save(inventoryItem);
+
+            reservation.setStatus(ReservationStatus.RELEASED);
+            reservation.setSettledAt(LocalDateTime.now());
+            reservationRepository.save(reservation);
         }
     }
 }

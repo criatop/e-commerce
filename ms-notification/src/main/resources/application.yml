@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5433/notification_db
-    username: postgres
-    password: "123"
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -46,5 +46,5 @@ management:
         include: health,info
 
 jwt:
-  secret: "EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026"
+  secret: ${JWT_SECRET:EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026}
   expirationMs: 86400000

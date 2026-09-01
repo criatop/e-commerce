@@ -30,7 +30,10 @@ public class StockLowConsumer {
             log.info("Stock alert notification sent for product: {}", event.getProductName());
         } catch (Exception e) {
             log.error("Failed to process stock.low event for product: {}", event.getProductId(), e);
-            acknowledgment.acknowledge();
+            if (e instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException("Error procesando stock.low: " + event.getProductId(), e);
         }
     }
 }

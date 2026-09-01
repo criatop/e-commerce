@@ -5,6 +5,7 @@ import cl.ecommerce.common.event.OrderCancelledEvent;
 import cl.ecommerce.common.event.OrderCreatedEvent;
 import cl.ecommerce.common.exception.BusinessException;
 import cl.ecommerce.common.exception.NotFoundException;
+import cl.ecommerce.common.security.SecurityUtils;
 import cl.ecommerce.order.client.InventoryClient;
 import cl.ecommerce.order.client.ProductClient;
 import cl.ecommerce.order.dto.CreateOrderRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,6 +39,8 @@ public class OrderService {
 
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
+        Map<String, Map<String, Object>> products = new HashMap<>();
+
         List<OrderItem> orderItems = request.items().stream()
                 .map(itemRequest -> {
                     ApiResponse<Map<String, Object>> productResponse = productClient.getProduct(itemRequest.productId());
@@ -45,6 +49,7 @@ public class OrderService {
                     }
 
                     Map<String, Object> product = productResponse.getDatos();
+                    products.put(itemRequest.productId(), product);
                     return OrderItem.builder()
                             .productId(itemRequest.productId())
                             .productName((String) product.get("name"))
@@ -73,9 +78,11 @@ public class OrderService {
                 savedOrder.getId().toString(),
                 request.items().stream()
                         .map(item -> {
-                            ApiResponse<Map<String, Object>> productResp = productClient.getProduct(item.productId());
-                            String sku = (String) productResp.getDatos().get("sku");
-                            return new InventoryReservationRequest.Item(sku, item.quantity());
+                            Map<String, Object> product = products.get(item.productId());
+                            if (product == null || product.get("sku") == null) {
+                                throw new BusinessException("Producto sin SKU valido: " + item.productId());
+                            }
+                            return new InventoryReservationRequest.Item((String) product.get("sku"), item.quantity());
                         })
                         .toList()
         );
@@ -119,6 +126,8 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Orden no encontrada: " + id));
 
+        SecurityUtils.requireSelfPrincipal(order.getUserId(), "ordenes");
+
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessException("La orden ya esta cancelada");
         }
@@ -130,19 +139,20 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = orderRepository.save(order);
 
-        InventoryReservationRequest releaseRequest = new InventoryReservationRequest(
-                savedOrder.getId().toString(),
-                savedOrder.getItems().stream()
-                        .map(item -> {
-                            ApiResponse<Map<String, Object>> productResp = productClient.getProduct(item.getProductId());
-                            String sku = (String) productResp.getDatos().get("sku");
-                            return new InventoryReservationRequest.Item(sku, item.getQuantity());
-                        })
-                        .toList()
-        );
+        List<InventoryReservationRequest.Item> releaseItems = savedOrder.getItems().stream()
+                .map(item -> {
+                    ApiResponse<Map<String, Object>> productResp = productClient.getProduct(item.getProductId());
+                    if (productResp == null || productResp.getDatos() == null || productResp.getDatos().get("sku") == null) {
+                        log.warn("No se pudo obtener el SKU para el producto {} al liberar stock de la orden {}", item.getProductId(), savedOrder.getId());
+                        throw new BusinessException("No se pudo determinar el SKU del producto " + item.getProductId());
+                    }
+                    String sku = (String) productResp.getDatos().get("sku");
+                    return new InventoryReservationRequest.Item(sku, item.getQuantity());
+                })
+                .toList();
 
         try {
-            inventoryClient.releaseStock(savedOrder.getId().toString(), releaseRequest);
+            inventoryClient.releaseStock(savedOrder.getId().toString(), releaseItems);
         } catch (Exception e) {
             log.error("Error al liberar stock para orden {}: {}", savedOrder.getId(), e.getMessage());
         }

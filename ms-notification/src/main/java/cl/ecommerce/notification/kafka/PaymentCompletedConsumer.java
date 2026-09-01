@@ -30,7 +30,10 @@ public class PaymentCompletedConsumer {
             log.info("Payment confirmation notification sent for order: {}", event.getOrderId());
         } catch (Exception e) {
             log.error("Failed to process payment.completed event for order: {}", event.getOrderId(), e);
-            acknowledgment.acknowledge();
+            if (e instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException("Error procesando payment.completed: " + event.getOrderId(), e);
         }
     }
 }
