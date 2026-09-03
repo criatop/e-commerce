@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión · Pink & Pink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-bg: #fdeef5;
+    --pink-soft: #fbd7e6;
+    --pink-primary: #f0568f;
+    --pink-primary-hover: #d94279;
+    --pink-dark: #c22c6c;
+    --pink-line: #f6c3d9;
+    --white: #ffffff;
+    --text-main: #3d3540;
+    --text-muted: #8a7f8a;
+    --radius: 14px;
+    --shadow: 0 20px 45px rgba(194, 44, 108, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-main);
+    background: var(--pink-bg);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 1120px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    min-height: 640px;
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  /* ---------- Left brand panel ---------- */
+  .brand-panel {
+    position: relative;
+    background: linear-gradient(155deg, #ffe2ee 0%, #ffc6de 55%, #f8a6c9 100%);
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .brand-panel::before,
+  .brand-panel::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.55);
+  }
+  .brand-panel::before { width: 220px; height: 220px; top: -70px; right: -70px; }
+  .brand-panel::after { width: 140px; height: 140px; bottom: -40px; left: -40px; border-color: rgba(255,255,255,0.4); }
+
+  .brand-mark {
+    position: relative;
+    z-index: 1;
+    border: 3px solid var(--white);
+    padding: 18px 26px;
+    display: inline-block;
+    align-self: flex-start;
+  }
+  .brand-mark .name {
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: 0.5px;
+    color: var(--white);
+    line-height: 1;
+    margin: 0;
+  }
+  .brand-mark .by {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+  }
+
+  .brand-copy { position: relative; z-index: 1; }
+  .brand-copy h1 {
+    font-size: 40px;
+    line-height: 1.05;
+    margin: 0 0 6px;
+    color: var(--white);
+    font-weight: 800;
+  }
+  .brand-copy .script {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 44px;
+    color: var(--white);
+    display: block;
+    margin-top: -4px;
+  }
+  .brand-copy p {
+    margin: 18px 0 0;
+    font-size: 15px;
+    color: rgba(255,255,255,0.92);
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  .brand-footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 28px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+  }
+  .brand-footer span { display: flex; align-items: center; gap: 6px; }
+  .brand-footer svg { width: 16px; height: 16px; }
+
+  /* ---------- Right form panel ---------- */
+  .form-panel {
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .form-panel .eyebrow {
+    color: var(--pink-primary);
+    font-weight: 600;
+    font-size: 13px;
+    margin: 0 0 6px;
+  }
+  .form-panel h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .form-panel .sub {
+    margin: 0 0 32px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .form-panel .sub a { color: var(--pink-primary); font-weight: 600; text-decoration: none; }
+  .form-panel .sub a:hover { text-decoration: underline; }
+
+  form { display: flex; flex-direction: column; gap: 20px; }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .field input {
+    border: 1.5px solid var(--pink-line);
+    background: #fff9fb;
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input::placeholder { color: #c7a9ba; }
+  .field input:focus {
+    border-color: var(--pink-primary);
+    box-shadow: 0 0 0 4px rgba(240, 86, 143, 0.14);
+  }
+
+  .row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+  .remember { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+  .remember input { accent-color: var(--pink-primary); width: 15px; height: 15px; }
+  .forgot { color: var(--pink-primary); text-decoration: none; font-weight: 600; }
+  .forgot:hover { text-decoration: underline; }
+
+  .btn-primary {
+    margin-top: 6px;
+    border: none;
+    border-radius: 999px;
+    padding: 15px 20px;
+    background: var(--pink-primary);
+    color: var(--white);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .btn-primary:hover { background: var(--pink-primary-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 28px 0 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--pink-line);
+  }
+
+  .btn-secondary {
+    border: 1.5px solid var(--pink-line);
+    background: var(--white);
+    border-radius: 999px;
+    padding: 13px 20px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .btn-secondary:hover { border-color: var(--pink-primary); background: #fff5f9; }
+
+  .signup-note {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .signup-note a { color: var(--pink-dark); font-weight: 700; text-decoration: none; }
+  .signup-note a:hover { text-decoration: underline; }
+
+  @media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; border-radius: 0; }
+    .brand-panel { display: none; }
+    .form-panel { padding: 48px 28px; }
+    body { align-items: flex-start; }
+  }
+
+  :focus-visible { outline: 2px solid var(--pink-dark); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Brand / marketing panel -->
+  <aside class="brand-panel">
+    <div class="brand-mark">
+      <p class="name">PINK&amp;PINK</p>
+      <span class="by">BY JHAIMAR ALTUVE</span>
+    </div>
+
+    <div class="brand-copy">
+      <h1>Bienvenida de<br>vuelta</h1>
+      <span class="script">te extrañábamos ♡</span>
+      <p>Inicia sesión para ver tu lista de deseos, seguir tus pedidos y descubrir las nuevas colecciones antes que nadie.</p>
+    </div>
+
+    <div class="brand-footer">
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg>
+        Hechos con amor
+      </span>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13l3 5-9.5 11L1 9z"/><path d="M1 9h19M9.5 20 8 4M14.5 20 16 4"/></svg>
+        Calidad garantizada
+      </span>
+    </div>
+  </aside>
+
+  <!-- Login form panel -->
+  <main class="form-panel">
+    <p class="eyebrow">Mi cuenta</p>
+    <h2>Iniciar sesión</h2>
+    <p class="sub">¿Aún no tienes cuenta? <a href="#">Crea una aquí</a></p>
+
+    <form>
+      <div class="field">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" required>
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" id="remember" name="remember">
+          Recordarme
+        </label>
+        <a class="forgot" href="#">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Iniciar sesión
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20s-7-4.35-9.5-8.5C.5 7.5 2.5 4 6 4c2 0 3.5 1 4 2.5C10.5 5 12 4 14 4c3.5 0 5.5 3.5 3.5 7.5C15 15.65 12 20 12 20z"/></svg>
+      </button>
+    </form>
+
+    <div class="divider">o continúa con</div>
+
+    <button type="button" class="btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.4 14.7 2.5 12 2.5 6.8 2.5 2.6 6.7 2.6 12S6.8 21.5 12 21.5c6.9 0 9.3-4.8 9.3-7.3 0-.5 0-.9-.1-1.3H12z"/></svg>
+      Continuar con Google
+    </button>
+
+    <p class="signup-note">Al continuar, aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.</p>
+  </main>
+
+</div>
+
+</body>
+</html>
