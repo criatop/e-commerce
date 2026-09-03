@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pink & Pink · Inicio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-bg: #fdeef5;
+    --pink-soft: #fce0ec;
+    --pink-primary: #f0568f;
+    --pink-primary-hover: #d94279;
+    --pink-dark: #c22c6c;
+    --pink-line: #f6c3d9;
+    --white: #ffffff;
+    --text-main: #3d3540;
+    --text-muted: #8a7f8a;
+    --gray-bg: #f7f5f6;
+    --shadow: 0 20px 45px rgba(194, 44, 108, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Poppins', sans-serif; color: var(--text-main); background: var(--white); }
+  a { text-decoration: none; color: inherit; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  svg { display: block; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    background: var(--pink-soft);
+    text-align: center;
+    padding: 9px 12px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    color: var(--pink-dark);
+    font-weight: 500;
+  }
+
+  /* ---------- Header ---------- */
+  header.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 48px;
+    border-bottom: 1px solid #f1e6ec;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1.5px solid #d9c8d1;
+    padding-bottom: 6px;
+    width: 230px;
+  }
+  .search-box input {
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+    width: 100%;
+    color: var(--text-main);
+  }
+  .search-box input::placeholder { color: #b3a3ac; }
+  .search-box svg { width: 16px; height: 16px; stroke: var(--text-muted); flex-shrink: 0; }
+
+  .brand-mark {
+    border: 3px solid var(--pink-primary);
+    padding: 12px 26px;
+    text-align: center;
+  }
+  .brand-mark .name {
+    margin: 0;
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+    color: var(--pink-primary);
+    line-height: 1;
+  }
+  .brand-mark .by {
+    display: block;
+    margin-top: 5px;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--pink-dark);
+    font-weight: 600;
+  }
+
+  .header-icons { display: flex; align-items: center; gap: 22px; }
+  .header-icons a { position: relative; color: var(--text-main); }
+  .header-icons svg { width: 21px; height: 21px; stroke: var(--text-main); stroke-width: 1.7; fill: none; }
+  .cart-count {
+    position: absolute;
+    top: -7px;
+    right: -8px;
+    background: var(--pink-primary);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- Nav ---------- */
+  nav.main-nav {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1e6ec;
+  }
+  nav.main-nav a {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--text-main);
+    padding-bottom: 14px;
+    position: relative;
+  }
+  nav.main-nav a.active { color: var(--pink-primary); }
+  nav.main-nav a.active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background: var(--pink-primary);
+  }
+  nav.main-nav a:hover { color: var(--pink-primary); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    background: linear-gradient(120deg, #fdeef5 0%, #fbd7e6 100%);
+    padding: 70px 90px;
+    min-height: 480px;
+    overflow: hidden;
+  }
+
+  .hero-text h1 {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--pink-primary);
+    letter-spacing: 0.5px;
+  }
+  .hero-text .script {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 52px;
+    color: var(--pink-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: -6px;
+  }
+  .hero-text p {
+    margin: 22px 0 30px;
+    font-size: 16px;
+    color: var(--text-main);
+    line-height: 1.6;
+    max-width: 340px;
+  }
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--pink-primary);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    padding: 16px 30px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .btn-cta:hover { background: var(--pink-primary-hover); }
+
+  .hero-visual {
+    position: relative;
+    height: 340px;
+  }
+  .hero-visual .swatch {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 70% 30%, rgba(255,255,255,0.55), transparent 40%),
+      linear-gradient(135deg, #ffd4e6 0%, #f6a9cb 60%, #f0568f 100%);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .hero-visual .piece {
+    position: absolute;
+    background: var(--white);
+    border: 3px solid var(--pink-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(194,44,108,0.18);
+  }
+  .piece.pendant { width: 92px; height: 92px; border-radius: 50%; top: 42%; left: 12%; }
+  .piece.ring    { width: 78px; height: 78px; border-radius: 50%; top: 18%; left: 46%; }
+  .piece.hoop-a  { width: 60px; height: 60px; border-radius: 50%; top: 8%;  right: 14%; }
+  .piece.hoop-b  { width: 60px; height: 60px; border-radius: 50%; top: 40%; right: 6%; }
+  .piece.studs   { width: 44px; height: 44px; border-radius: 50%; bottom: 6%; right: 24%; }
+  .piece svg { width: 46%; height: 46%; stroke: var(--pink-primary); fill: none; stroke-width: 1.6; }
+  .piece.pendant svg { fill: var(--pink-primary); }
+
+  .hero-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--pink-dark);
+  }
+  .hero-arrow.left { left: 24px; }
+  .hero-arrow.right { right: 24px; }
+  .hero-arrow svg { width: 16px; height: 16px; }
+
+  .hero-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+  }
+  .hero-dots span { width: 7px; height: 7px; border-radius: 50%; background: #f6b9d3; }
+  .hero-dots span.active { background: var(--pink-primary); }
+
+  /* ---------- Features bar ---------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 40px 90px;
+    background: var(--gray-bg);
+  }
+  .feature { display: flex; align-items: center; gap: 16px; }
+  .feature .icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .feature .icon svg { width: 20px; height: 20px; stroke: var(--pink-primary); fill: none; stroke-width: 1.8; }
+  .feature strong { display: block; font-size: 12.5px; letter-spacing: 0.3px; }
+  .feature span { display: block; font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ---------- Collections ---------- */
+  .collections { padding: 60px 90px 80px; text-align: center; }
+  .collections .heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .collections h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--pink-primary);
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+  .collections .heart { color: var(--pink-primary); font-size: 18px; }
+  .view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--pink-primary);
+    float: right;
+    margin-top: -34px;
+  }
+
+  .collection-grid {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+  }
+  .collection-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    display: flex;
+    align-items: flex-end;
+    background: linear-gradient(155deg, #ffe2ee 0%, #f6a9cb 100%);
+  }
+  .collection-card.sale {
+    background: linear-gradient(155deg, #f78bb5 0%, #ee4f8c 100%);
+    align-items: center;
+    justify-content: center;
+  }
+  .collection-card .glyph {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .collection-card .glyph svg { width: 42%; height: 42%; stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 1.4; }
+  .collection-card .label {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 16px;
+    text-align: center;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 1px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.18), transparent);
+  }
+  .collection-card.sale .label {
+    background: none;
+    font-family: 'Caveat', cursive;
+    font-size: 34px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 1000px) {
+    header.site-header, nav.main-nav, .hero, .features, .collections { padding-left: 28px; padding-right: 28px; }
+    .hero { grid-template-columns: 1fr; }
+    .hero-visual { margin-top: 30px; }
+    .features { grid-template-columns: repeat(2, 1fr); }
+    .collection-grid { grid-template-columns: repeat(2, 1fr); }
+    .search-box { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">Envíos a todo Chile ♥</div>
+
+<header class="site-header">
+  <div class="search-box">
+    <input type="text" placeholder="Buscar accesorios...">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </div>
+
+  <div class="brand-mark">
+    <p class="name">PINK&amp;PINK</p>
+    <span class="by">BY JHAIMAR ALTUVE</span>
+  </div>
+
+  <div class="header-icons">
+    <a href="#" aria-label="Cuenta">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    </a>
+    <a href="#" aria-label="Favoritos">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg>
+    </a>
+    <a href="#" aria-label="Carrito">
+      <svg viewBox="0 0 24 24"><path d="M4 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="17" cy="21" r="1"/></svg>
+      <span class="cart-count">0</span>
+    </a>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <a href="#" class="active">INICIO</a>
+  <a href="#">NUEVOS</a>
+  <a href="#">COLLARES</a>
+  <a href="#">PULSERAS</a>
+  <a href="#">AROS</a>
+  <a href="#">ACCESORIOS</a>
+  <a href="#">SALE</a>
+  <a href="#">NOSOTROS</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-arrow left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+
+  <div class="hero-text">
+    <h1>ACCESORIOS QUE</h1>
+    <span class="script">hablan de ti <span>♡</span></span>
+    <p>Diseños únicos, hechos para brillar en cada momento.</p>
+    <button class="btn-cta">
+      VER COLECCIÓN
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg>
+    </button>
+  </div>
+
+  <div class="hero-visual">
+    <div class="swatch"></div>
+    <div class="piece pendant"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div class="piece ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece hoop-a"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece hoop-b"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece studs"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div class="hero-dots"><span class="active"></span><span></span><span></span></div>
+  </div>
+
+  <div class="hero-arrow right">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h3l4 4v3h-7"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></svg></div>
+    <div><strong>ENVÍOS A TODO CHILE</strong><span>Rápidos y seguros</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+    <div><strong>PAGA COMO QUIERAS</strong><span>Transferencia o tarjeta</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M9 13.5 7 22l5-3 5 3-2-8.5"/></svg></div>
+    <div><strong>CALIDAD GARANTIZADA</strong><span>Accesorios resistentes</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div><strong>HECHOS CON AMOR</strong><span>Detalles que enamoran</span></div>
+  </div>
+</section>
+
+<section class="collections">
+  <a class="view-all" href="#">VER TODAS
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+  <div class="heading">
+    <h2>COLECCIONES DESTACADAS</h2>
+  </div>
+  <div class="heart">♥</div>
+
+  <div class="collection-grid">
+    <div class="collection-card">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+      <div class="label">COLLARES</div>
+    </div>
+    <div class="collection-card">
+      <div class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+      <div class="label">PULSERAS</div>
+    </div>
+    <div class="collection-card">
+      <div class="glyph"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="16" cy="12" r="6"/></svg></div>
+      <div class="label">AROS</div>
+    </div>
+    <div class="collection-card">
+      <div class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></svg></div>
+      <div class="label">ACCESORIOS</div>
+    </div>
+    <div class="collection-card sale">
+      <div class="label">SALE</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
