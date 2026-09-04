@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Detalle de producto · Pink &amp; Pink{% endblock %}
+
+{% block content %}
+<section class="container-section">
+  <a href="{{ url_for('productos') }}" class="btn-back">&larr; Volver al catálogo</a>
+
+  <div class="detalle-wrap" id="detalleProducto">
+    <!-- La tarjeta la rellena productos.js -->
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
+<script src="{{ url_for('static', filename='js/productos.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var parametros = new URLSearchParams(window.location.search);
+  var codigo = parametros.get("codigo");
+  if (codigo) {
+    mostrarDetalleProducto(codigo);
+  } else {
+    window.location.href = "{{ url_for('productos') }}";
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+<header class="site-header">
+    <div class="search-box">
+        <input type="text" id="buscadorGlobal" placeholder="Buscar accesorios ..." autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+
+    <div class="brand-mark">
+        <p class="name">PINK&amp;PINK</p>
+        <span class="by">BY JHAIMAR ALTUVE</span>
+    </div>
+
+    <div class="header-icons">
+    <a id="iconoCta" href="{{ url_for('cuenta') }}" aria-label="Cuenta">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    </a>
+    <a href="{{ url_for('carrito') }}" aria-label="Carrito">
+      <svg viewBox="0 0 24 24"><path d="M4 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="17" cy="21" r="1"/></svg>
+      <span class="cart-count" id="carritoBadge">0</span>
+    </a>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <a href="{{ url_for('home') }}">INICIO</a>
+  <a href="{{ url_for('productos') }}?categoria=1">COLLARES</a>
+  <a href="{{ url_for('productos') }}?categoria=2">PULSERAS</a>
+  <a href="{{ url_for('productos') }}?categoria=3">AROS</a>
+  <a href="{{ url_for('productos') }}?categoria=5">ACCESORIOS</a>
+  <a href="{{ url_for('productos') }}">TODOS</a>
+  <a href="{{ url_for('nosotros') }}">NOSOTROS</a>
+  <a href="{{ url_for('contacto') }}">CONTACTO</a>
+</nav>

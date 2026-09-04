@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Mi carrito · Pink &amp; Pink{% endblock %}
+
+{% block content %}
+<section class="container-section">
+  <h1 class="section-title">Mi carrito</h1>
+
+  <div id="carritoVacio" class="empty-cart" style="display:none;">
+    <p>Tu carrito está vacío.</p>
+    <a href="{{ url_for('productos') }}" class="btn-cta">Ir a comprar</a>
+  </div>
+
+  <div id="carritoLleno" style="display:none;">
+    <div class="table-responsive">
+      <table class="table align-middle text-center">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="carritoTabla"></tbody>
+      </table>
+    </div>
+
+    <div class="carrito-resumen">
+      <p>Total: <strong id="carritoTotal">$0</strong></p>
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-outline-danger" onclick="vaciarCarrito()">Vaciar carrito</button>
+        <button class="btn btn-accent" onclick="finalizarCompra()">Finalizar compra</button>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", renderizarCarrito);
+</script>
+{% endblock %}

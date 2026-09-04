@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Pink &amp; Pink · Accesorios Chic{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="hero-arrow left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+
+  <div class="hero-text">
+    <h1>ACCESORIOS QUE</h1>
+    <span class="script">hablan de ti <span>♡</span></span>
+    <p>Diseños únicos, hechos para brillar en cada momento. Descubre nuestra colección de accesorios femeninos.</p>
+    <button class="btn-cta" onclick="window.location.href='{{ url_for('productos') }}'">
+      VER COLECCIÓN
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg>
+    </button>
+  </div>
+
+  <div class="hero-visual">
+    <div class="swatch"></div>
+    <div class="piece pendant"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div class="piece ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece hoop-a"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece hoop-b"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="piece studs"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div class="hero-dots"><span class="active"></span><span></span><span></span></div>
+  </div>
+
+  <div class="hero-arrow right">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h3l4 4v3h-7"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></svg></div>
+    <div><strong>ENVÍOS A TODO CHILE</strong><span>Rápidos y seguros</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+    <div><strong>PAGA COMO QUIERAS</strong><span>Transferencia o tarjeta</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M9 13.5 7 22l5-3 5 3-2-8.5"/></svg></div>
+    <div><strong>CALIDAD GARANTIZADA</strong><span>Accesorios resistentes</span></div>
+  </div>
+  <div class="feature">
+    <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+    <div><strong>HECHOS CON AMOR</strong><span>Detalles que enamoran</span></div>
+  </div>
+</section>
+
+<section class="collections">
+  <a class="view-all" href="{{ url_for('productos') }}">VER TODAS
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+  <div class="heading">
+    <h2>COLECCIONES DESTACADAS</h2>
+  </div>
+  <div class="heart">♥</div>
+
+  <div class="collection-grid">
+    <a class="collection-card" href="{{ url_for('productos') }}?categoria=1">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z"/></svg></div>
+      <div class="label">COLLARES</div>
+    </a>
+    <a class="collection-card" href="{{ url_for('productos') }}?categoria=2">
+      <div class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+      <div class="label">PULSERAS</div>
+    </a>
+    <a class="collection-card" href="{{ url_for('productos') }}?categoria=3">
+      <div class="glyph"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="16" cy="12" r="6"/></svg></div>
+      <div class="label">AROS</div>
+    </a>
+    <a class="collection-card" href="{{ url_for('productos') }}?categoria=5">
+      <div class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></svg></div>
+      <div class="label">ACCESORIOS</div>
+    </a>
+    <a class="collection-card sale" href="{{ url_for('productos') }}">
+      <div class="label">SALE</div>
+    </a>
+  </div>
+</section>
+
+<section class="container-section">
+  <h1 class="section-title">Productos destacados</h1>
+  <div class="row g-4" id="destacadosContenedor"></div>
+</section>
+
+<section class="container-section">
+  <h2 class="section-title">Novedades del blog</h2>
+  <div class="row g-4" id="noticiasContenedor"></div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/productos.js') }}"></script>
+<script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (document.getElementById("destacadosContenedor")) {
+    mostrarDestacados("destacadosContenedor");
+  }
+  if (document.getElementById("noticiasContenedor")) {
+    mostrarNoticias("noticiasContenedor");
+  }
+});
+</script>
+{% endblock %}
