@@ -33,8 +33,8 @@ function inicializarDatos() {
             { id: 1, nombre: "Collares", descripcion: "Collares, gargantillas y cadenas" },
             { id: 2, nombre: "Pulseras", descripcion: "Pulseras y brazaletes" },
             { id: 3, nombre: "Aros", descripcion: "Aros y pendientes" },
-            { id: 4, nombre: "Anillos", descripcion: "Anillos de moda" },
-            { id: 5, nombre: "Accesorios", descripcion: "Tobilleras, broches y más" }
+            { id: 4, nombre: "Diademas", descripcion: "Diademas y cintillos para todo estilo" },
+            { id: 5, nombre: "Accesorios", descripcion: "Llaveros, cintillos y más" }
         ]);
     }
 
@@ -69,14 +69,24 @@ function inicializarDatos() {
 
     if (!localStorage.getItem(CHIC_KEYS.productos)) {
         guardarColeccion(CHIC_KEYS.productos, [
-            { codigo: "CH-001", nombre: "Collar Perla Rosa", descripcion: "Collar delicado con perlas rosa agua, perfecto para realzar cualquier look de día.", precio: 14990, stock: 18, stockCritico: 4, categoriaId: 1, imagen: "productos/collar-perla.svg", estado: "Activo" },
-            { codigo: "CH-002", nombre: "Pulsera Cadena Fina", descripcion: "Pulsera dorada de cadena fina con cierre seguro. Ideal para combinar en capas.", precio: 8990, stock: 22, stockCritico: 5, categoriaId: 2, imagen: "productos/pulsera-cadena.svg", estado: "Activo" },
-            { codigo: "CH-003", nombre: "Aros Aro Luna", descripcion: "Aros circulares con detalle de luna que aportan un toque bohemio y femenino.", precio: 11990, stock: 12, stockCritico: 3, categoriaId: 3, imagen: "productos/aros-luna.svg", estado: "Activo" },
-            { codigo: "CH-004", nombre: "Anillo Corazón", descripcion: "Anillo ajustable con figura de corazón esmaltado en rosa, suave y romántico.", precio: 6990, stock: 25, stockCritico: 6, categoriaId: 4, imagen: "productos/anillo-corazon.svg", estado: "Activo" },
-            { codigo: "CH-005", nombre: "Collar Letra Inicial", descripcion: "Collar personalizable con tu inicial en dorado. Un regalo íntimo y personal.", precio: 12990, stock: 10, stockCritico: 3, categoriaId: 1, imagen: "productos/collar-letra.svg", estado: "Activo" },
-            { codigo: "CH-006", nombre: "Pulsera Encanto Rosa", descripcion: "Pulsera con charm de flor rosa y cristal, delicada y llena de encanto.", precio: 9990, stock: 16, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera-encanto.svg", estado: "Activo" },
-            { codigo: "CH-007", nombre: "Aros Perla Cristal", descripcion: "Aros colgantes con perlas y cristales que brillan con elegancia.", precio: 15990, stock: 8, stockCritico: 3, categoriaId: 3, imagen: "productos/aros-perla.svg", estado: "Activo" },
-            { codigo: "CH-008", nombre: "Set Pashmina Aro", descripcion: "Accesorios para el cabello: pashminas y aros metálicos en tonos nude.", precio: 4990, stock: 30, stockCritico: 8, categoriaId: 5, imagen: "productos/pashmina-aro.svg", estado: "Activo" }
+            
+            { codigo: "CH-001", nombre: "Aros Dorados", descripcion: "Aros dorados clásicos que aportan luz y brillo a cualquier look de día.", precio: 11500, stock: 15, stockCritico: 4, categoriaId: 3, imagen: "productos/aros1.jpg", estado: "Activo" },
+            { codigo: "CH-002", nombre: "Cintillo Hojas Doradas", descripcion: "Cintillo dorado con delicadas hojas que realzan cualquier peinado.", precio: 8500, stock: 20, stockCritico: 5, categoriaId: 5, imagen: "productos/cintillo.jpg", estado: "Activo" },
+            { codigo: "CH-003", nombre: "Collar Corazón Dorado", descripcion: "Collar con colgante en forma de corazón dorado, romántico y versátil.", precio: 15900, stock: 12, stockCritico: 3, categoriaId: 1, imagen: "productos/collar1.jpg", estado: "Activo" },
+            { codigo: "CH-004", nombre: "Collar Perlado Corazón Rojo", descripcion: "Collar aperlado con colgante de corazón rojo para un toque lleno de pasión.", precio: 16900, stock: 10, stockCritico: 3, categoriaId: 1, imagen: "productos/collar2.jpg", estado: "Activo" },
+            { codigo: "CH-005", nombre: "Collar Playero Estrellas de Mar", descripcion: "Collar estilo playero adornado con conchitas y estrellas de mar.", precio: 13900, stock: 14, stockCritico: 4, categoriaId: 1, imagen: "productos/collar3.jpg", estado: "Activo" },
+            { codigo: "CH-006", nombre: "Collar Perlas y Medallas", descripcion: "Collar con perlas y medallas decorativas, elegante y con mucho estilo.", precio: 17900, stock: 8, stockCritico: 3, categoriaId: 1, imagen: "productos/collar4.jpg", estado: "Activo" },
+            { codigo: "CH-007", nombre: "Diadema Multicolor", descripcion: "Diademas de distintos colores para darle vida y alegría a tu look.", precio: 6900, stock: 25, stockCritico: 6, categoriaId: 4, imagen: "productos/diadema 1.jpeg", estado: "Activo" },
+            { codigo: "CH-008", nombre: "Diadema Tonos Pastel", descripcion: "Diademas en suaves tonos pastel, frescas y femeninas.", precio: 6900, stock: 22, stockCritico: 6, categoriaId: 4, imagen: "productos/diadema2.jpeg", estado: "Activo" },
+            { codigo: "CH-009", nombre: "Diadema Diseño Especial", descripcion: "Diadema con patrón característico y diseño diferencial.", precio: 7500, stock: 16, stockCritico: 5, categoriaId: 4, imagen: "productos/diadema4.jpeg", estado: "Activo" },
+            { codigo: "CH-010", nombre: "Diadema Colores Vivos", descripcion: "Diadema con nuevo patrón y colores llamativos que no pasan desapercibidos.", precio: 7500, stock: 20, stockCritico: 5, categoriaId: 4, imagen: "productos/diadema5.jpg", estado: "Activo" },
+            { codigo: "CH-011", nombre: "Llavero Perro Salchicha", descripcion: "Llavero divertido con figura de perro salchicha para acompañarte a todas partes.", precio: 4900, stock: 30, stockCritico: 8, categoriaId: 5, imagen: "productos/llavero1.jpg", estado: "Activo" },
+            { codigo: "CH-012", nombre: "Llavero Salchicha Ternura", descripcion: "Llavero de perro salchicha en versión tierna, ideal para regalar.", precio: 4900, stock: 28, stockCritico: 8, categoriaId: 5, imagen: "productos/llavero2.jpg", estado: "Activo" },
+            { codigo: "CH-013", nombre: "Pulsera Dios con Perlas", descripcion: "Pulsera con palabra \"Dios\" combinada con delicadas perlas.", precio: 9900, stock: 16, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera.jpg", estado: "Activo" },
+            { codigo: "CH-014", nombre: "Pulsera Figuras", descripcion: "Pulsera con figuras decorativas que le dan un toque único.", precio: 8900, stock: 18, stockCritico: 5, categoriaId: 2, imagen: "productos/pulsera2.jpg", estado: "Activo" },
+            { codigo: "CH-015", nombre: "Pulsera Corazones", descripcion: "Pulsera adornada con corazones, romántica y delicada.", precio: 8900, stock: 20, stockCritico: 5, categoriaId: 2, imagen: "productos/pulsera3.jpg", estado: "Activo" },
+            { codigo: "CH-016", nombre: "Pulsera Cuero y Figuras", descripcion: "Pulsera de cuero combinada con figuras, moderna y con carácter.", precio: 10900, stock: 12, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera4.jpg", estado: "Activo" },
+            { codigo: "CH-017", nombre: "Pulsera Cuero Encanto", descripcion: "Pulsera de cuero con figuras y encanto casual.", precio: 10900, stock: 12, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera5.jpg", estado: "Activo" }
         ]);
     }
 
