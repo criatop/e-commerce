@@ -10,7 +10,7 @@ function obtenerNombreCategoria(categoriaId) {
 
 function crearTarjetaProducto(producto) {
     const enlace = "/producto-detalle?codigo=" + encodeURIComponent(producto.codigo);
-    return '<div class="col">' +
+    return '<div class="col-6 col-md-3 col-lg-2">' +
         '<div class="card-nexo-hover h-100">' +
         '<a href="' + enlace + '">' +
         '<img src="' + rutaImagenProducto(producto) + '" class="card-img-top" alt="' + producto.nombre + '">' +
