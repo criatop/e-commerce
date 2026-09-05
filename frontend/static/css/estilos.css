@@ -49,13 +49,13 @@ header.site-header {
   align-items: center;
   justify-content: space-between;
   padding: 18px 48px;
-  border-bottom: 1px solid #f1e6ec;
+  border-bottom: 1px solid var(--pink-line);
 }
 .search-box {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1.5px solid #d9c8d1;
+  border-bottom: 1.5px solid var(--pink-line);
   padding-bottom: 6px;
   width: 230px;
 }
@@ -68,7 +68,7 @@ header.site-header {
   color: var(--text-main);
   background: transparent;
 }
-.search-box input::placeholder { color: #b3a3ac; }
+.search-box input::placeholder { color: var(--text-muted); }
 .search-box svg { width: 16px; height: 16px; stroke: var(--text-muted); flex-shrink: 0; }
 
 .brand-mark {
@@ -121,7 +121,7 @@ nav.main-nav {
   flex-wrap: wrap;
   gap: 40px;
   padding: 16px 0;
-  border-bottom: 1px solid #f1e6ec;
+  border-bottom: 1px solid var(--pink-line);
 }
 nav.main-nav a {
   font-size: 13px;
@@ -370,7 +370,7 @@ nav.main-nav a:hover { color: var(--pink-primary); }
 
 /* ---------- Tarjetas de producto ---------- */
 .card-nexo-hover {
-  border: 1px solid #f1e6ec;
+  border: 1px solid var(--pink-line);
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--white);
@@ -409,7 +409,7 @@ footer.site-footer {
   background: var(--pink-soft);
   color: var(--text-main);
   padding: 48px 90px 20px;
-  border-top: 1px solid #f1e6ec;
+  border-top: 1px solid var(--pink-line);
 }
 .footer-inner {
   display: grid;
@@ -433,7 +433,7 @@ footer.site-footer {
 .footer-socials a { color: var(--pink-dark); }
 .footer-socials a:hover { color: var(--pink-primary); }
 .footer-bottom {
-  border-top: 1px solid #e6ceda;
+  border-top: 1px solid var(--pink-line);
   padding-top: 16px;
   text-align: center;
 }
@@ -455,4 +455,164 @@ footer.site-footer {
   .footer-inner { grid-template-columns: 1fr; }
   .collection-grid { grid-template-columns: 1fr; }
   .features { grid-template-columns: 1fr; }
+}
+
+/*pagina nosotros*/
+.titulo-nosotros {
+  color: var(--pink-primary);
+}
+
+.subtitulo-nosotros {
+  color: var(--pink-dark);
+}
+
+.caja-historia {
+  background-color: var(--pink-bg);
+  border: 1px solid var(--pink-line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-equipo {
+  background-color: var(--white);
+  border: 1px solid var(--pink-line) !important;
+  border-radius: var(--radius) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-equipo:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow) !important;
+}
+
+.icon-equipo {
+  color: var(--pink-primary);
+}
+
+.badge-rol {
+  background-color: var(--pink-soft);
+  color: var(--pink-dark);
+  font-size: 0.9rem;
+  padding: 0.5em 0.9em;
+}
+
+/*pagina blog*/
+.titulo-blog {
+  color: var(--pink-primary);
+}
+
+.card-blog {
+  background-color: var(--white);
+  border: 1px solid var(--pink-line) !important;
+  border-radius: var(--radius) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-blog:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow) !important;
+}
+
+.badge-blog {
+  background-color: var(--pink-soft);
+  color: var(--pink-dark);
+  padding: 0.5em 0.8em;
+}
+
+.btn-blog {
+  background-color: var(--pink-primary);
+  color: var(--white);
+  border-radius: var(--radius);
+  font-weight: 600;
+  border: none;
+}
+
+.btn-blog:hover {
+  background-color: var(--pink-primary-hover);
+  color: var(--white);
+}
+
+/*pagina contacto*/
+
+.titulo-contacto {
+  color: var(--pink-primary);
+}
+
+.subtitulo-contacto {
+  color: var(--pink-dark);
+}
+
+.caja-contacto {
+  background-color: var(--white);
+  border: 1px solid var(--pink-line) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.btn-contacto {
+  background-color: var(--pink-primary);
+  color: var(--white);
+  border-radius: var(--radius);
+  font-weight: 600;
+  border: none;
+  padding: 0.7em;
+}
+
+.btn-contacto:hover {
+  background-color: var(--pink-primary-hover);
+  color: var(--white);
+}
+
+.form-control:focus {
+  border-color: var(--pink-primary);
+  box-shadow: 0 0 0 0.25rem var(--pink-primary-hover);
+}
+
+/*panel admin*/
+.titulo-admin {
+  color: var(--pink-dark);
+}
+
+.subtitulo-admin {
+  color: var(--text-main);
+}
+
+.card-admin {
+  background-color: var(--white);
+  border: 1px solid var(--pink-line) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+  transition: transform 0.2s ease;
+}
+
+.card-admin:hover {
+  transform: translateY(-3px);
+}
+
+.icon-admin {
+  color: var(--pink-primary);
+}
+
+.btn-admin {
+  background-color: var(--pink-primary);
+  color: var(--white);
+  border-radius: var(--radius);
+  font-weight: 600;
+  border: none;
+  padding: 0.6em 1em;
+}
+
+.btn-admin:hover {
+  background-color: var(--pink-primary-hover);
+  color: var(--white);
+}
+
+.caja-resumen {
+  background-color: var(--pink-bg);
+  border: 1px solid var(--pink-line);
+  border-radius: var(--radius);
+}
+
+.text-pink {
+  color: var(--pink-primary);
 }

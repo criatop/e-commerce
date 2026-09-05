@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <!-- Encabezado y Botón Agregar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+        <div>
+            <h1 class="fw-bold h2 titulo-admin">Gestión de Usuarios</h1>
+            <p class="text-muted mb-0">Administra las cuentas de los clientes y administradores registrados.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary btn-sm align-self-center">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+            </a>
+            <a href="{{ url_for('admin_usuario_form') }}" class="btn btn-admin btn-sm align-self-center">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de Usuarios -->
+    <div class="card border-0 caja-admin-tabla">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-3">RUT</th>
+                            <th scope="col">Nombre Completo</th>
+                            <th scope="col">Correo Electrónico</th>
+                            <th scope="col">Región / Comuna</th>
+                            <th scope="col">Rol</th>
+                            <th scope="col" class="text-end pe-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuariosBody">
+                        <!-- Usuario Administrador (Ejemplo) -->
+                        <tr>
+                            <td class="ps-3 fw-bold text-muted">19.876.543-2</td>
+                            <td class="fw-bold">Valentina Silva</td>
+                            <td>v.silva@duoc.cl</td>
+                            <td>RM / Santiago</td>
+                            <td><span class="badge bg-danger">Administrador</span></td>
+                            <td class="text-end pe-3">
+                                <a href="{{ url_for('admin_usuario_form') }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Usuario Cliente (Ejemplo) -->
+                        <tr>
+                            <td class="ps-3 fw-bold text-muted">20.123.456-7</td>
+                            <td class="fw-bold">Camila Morales</td>
+                            <td>camila.m@gmail.com</td>
+                            <td>Valparaíso / Viña del Mar</td>
+                            <td><span class="badge badge-categoria">Cliente</span></td>
+                            <td class="text-end pe-3">
+                                <a href="{{ url_for('admin_usuario_form') }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
