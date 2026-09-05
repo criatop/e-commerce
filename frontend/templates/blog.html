@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Blog y Noticias - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5 titulo-blog">Blog & Novedades</h1>
+        <p class="lead text-muted">Descubre las últimas tendencias, tips de cuidado y noticias de Pink & Pink.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Noticia 1 -->
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card h-100 border-0 card-blog">
+                <div class="card-body p-4 d-flex flex-column">
+                    <span class="badge rounded-pill mb-2 align-self-start badge-blog">Tendencias</span>
+                    <h3 class="card-title fw-bold h4 mb-3">Guía de Tendencias: Accesorios de Primavera</h3>
+                    <p class="card-text text-muted flex-grow-1">
+                        Conoce los tonos y materiales que marcarán la temporada. Desde piezas minimalistas hasta combinaciones audaces.
+                    </p>
+                    <a href="{{ url_for('blog_detalle_1') }}" class="btn btn-blog mt-3">Leer más</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Noticia 2 -->
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card h-100 border-0 card-blog">
+                <div class="card-body p-4 d-flex flex-column">
+                    <span class="badge rounded-pill mb-2 align-self-start badge-blog">Tips & Cuidado</span>
+                    <h3 class="card-title fw-bold h4 mb-3">Cómo Cuidar tus Joyas para que Cuenten Historias</h3>
+                    <p class="card-text text-muted flex-grow-1">
+                        Consejos prácticos para limpiar y almacenar tus accesorios favoritos evitando el desgaste del día a día.
+                    </p>
+                    <a href="{{ url_for('blog_detalle_2') }}" class="btn btn-blog mt-3">Leer más</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

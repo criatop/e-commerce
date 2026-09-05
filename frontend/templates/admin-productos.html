@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Productos - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <!-- Encabezado y Botón Agregar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+        <div>
+            <h1 class="fw-bold h2 titulo-admin">Gestión de Productos</h1>
+            <p class="text-muted mb-0">Administra el inventario y catálogo de la tienda.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary btn-sm align-self-center">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+            </a>
+            <a href="{{ url_for('admin_producto_form') }}" class="btn btn-admin btn-sm align-self-center">
+                <i class="bi bi-plus-lg me-1"></i> Nuevo Producto
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de Productos -->
+    <div class="card border-0 caja-admin-tabla">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-3">Código</th>
+                            <th scope="col">Imagen</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col" class="text-end pe-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProductosBody">
+                        <!-- Producto 1 (Ejemplo estático) -->
+                        <tr>
+                            <td class="ps-3 fw-bold text-muted">#PROD-001</td>
+                            <td>
+                                <div class="thumb-producto-admin">
+                                    <i class="bi bi-bag-heart text-pink fs-4"></i>
+                                </div>
+                            </td>
+                            <td class="fw-bold">Collar Rose Gold</td>
+                            <td><span class="badge badge-categoria">Collares</span></td>
+                            <td>$24.990</td>
+                            <td><span class="badge bg-success">15 un.</span></td>
+                            <td class="text-end pe-3">
+                                <a href="{{ url_for('admin_producto_form') }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Producto 2 (Ejemplo stock crítico) -->
+                        <tr>
+                            <td class="ps-3 fw-bold text-muted">#PROD-002</td>
+                            <td>
+                                <div class="thumb-producto-admin">
+                                    <i class="bi bi-gem text-pink fs-4"></i>
+                                </div>
+                            </td>
+                            <td class="fw-bold">Anillo Solitario Crystal</td>
+                            <td><span class="badge badge-categoria">Anillos</span></td>
+                            <td>$18.500</td>
+                            <td><span class="badge bg-danger">2 un.</span></td>
+                            <td class="text-end pe-3">
+                                <a href="{{ url_for('admin_producto_form') }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

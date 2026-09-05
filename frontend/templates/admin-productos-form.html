@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Formulario de Producto - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="fw-bold h2 titulo-admin">Formulario de Producto</h1>
+            <p class="text-muted mb-0">Ingresa los datos para registrar o modificar un producto en el catálogo.</p>
+        </div>
+        <a href="{{ url_for('admin_productos') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Productos
+        </a>
+    </div>
+
+    <!-- Tarjeta del Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 p-4 caja-contacto">
+                <form id="formProductoAdmin" novalidate>
+                    <div class="row g-3">
+                        <!-- Código del Producto -->
+                        <div class="col-12 col-md-6">
+                            <label for="codigoProducto" class="form-label fw-bold">Código SKU</label>
+                            <input type="text" class="form-control" id="codigoProducto" name="codigo" placeholder="Ej: PROD-001">
+                            <div class="invalid-feedback" id="errorCodigo"></div>
+                        </div>
+
+                        <!-- Nombre del Producto -->
+                        <div class="col-12 col-md-6">
+                            <label for="nombreProducto" class="form-label fw-bold">Nombre del Producto</label>
+                            <input type="text" class="form-control" id="nombreProducto" name="nombre" placeholder="Ej: Collar Rose Gold">
+                            <div class="invalid-feedback" id="errorNombreProducto"></div>
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="col-12 col-md-6">
+                            <label for="categoriaProducto" class="form-label fw-bold">Categoría</label>
+                            <select class="form-select" id="categoriaProducto" name="categoria">
+                                <option value="" selected disabled>Selecciona una categoría</option>
+                                <option value="collares">Collares</option>
+                                <option value="anillos">Anillos</option>
+                                <option value="aros">Aros</option>
+                                <option value="pulseras">Pulseras</option>
+                            </select>
+                            <div class="invalid-feedback" id="errorCategoria"></div>
+                        </div>
+
+                        <!-- Precio -->
+                        <div class="col-12 col-md-3">
+                            <label for="precioProducto" class="form-label fw-bold">Precio ($)</label>
+                            <input type="number" class="form-control" id="precioProducto" name="precio" placeholder="24990">
+                            <div class="invalid-feedback" id="errorPrecio"></div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="col-12 col-md-3">
+                            <label for="stockProducto" class="form-label fw-bold">Stock Inicial</label>
+                            <input type="number" class="form-control" id="stockProducto" name="stock" placeholder="10">
+                            <div class="invalid-feedback" id="errorStock"></div>
+                        </div>
+
+                        <!-- URL de la Imagen -->
+                        <div class="col-12">
+                            <label for="imagenProducto" class="form-label fw-bold">Ruta de Imagen / URL</label>
+                            <input type="text" class="form-control" id="imagenProducto" name="imagen" placeholder="img/productos/collar-rose.jpg">
+                            <div class="invalid-feedback" id="errorImagen"></div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="col-12">
+                            <label for="descripcionProducto" class="form-label fw-bold">Descripción</label>
+                            <textarea class="form-control" id="descripcionProducto" name="descripcion" rows="4" placeholder="Escribe las características y detalles del producto..."></textarea>
+                            <div class="invalid-feedback" id="errorDescripcion"></div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('admin_productos') }}" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-contacto">Guardar Producto</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

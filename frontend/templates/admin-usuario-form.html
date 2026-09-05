@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Formulario de Usuario - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="fw-bold h2 titulo-admin">Formulario de Usuario</h1>
+            <p class="text-muted mb-0">Registra o modifica la información de una cuenta del sistema.</p>
+        </div>
+        <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Usuarios
+        </a>
+    </div>
+
+    <!-- Tarjeta del Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 p-4 caja-contacto">
+                <form id="formUsuarioAdmin" novalidate>
+                    <div class="row g-3">
+                        <!-- Campo RUT -->
+                        <div class="col-12 col-md-6">
+                            <label for="rutUsuario" class="form-label fw-bold">RUT</label>
+                            <input type="text" class="form-control" id="rutUsuario" name="rut" placeholder="12.345.678-K">
+                            <div class="invalid-feedback" id="errorRut"></div>
+                        </div>
+
+                        <!-- Campo Rol -->
+                        <div class="col-12 col-md-6">
+                            <label for="rolUsuario" class="form-label fw-bold">Rol de Usuario</label>
+                            <select class="form-select" id="rolUsuario" name="rol">
+                                <option value="" selected disabled>Selecciona un rol</option>
+                                <option value="cliente">Cliente</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                            <div class="invalid-feedback" id="errorRol"></div>
+                        </div>
+
+                        <!-- Campo Nombre -->
+                        <div class="col-12 col-md-6">
+                            <label for="nombreUsuarioAdmin" class="form-label fw-bold">Nombre(s)</label>
+                            <input type="text" class="form-control" id="nombreUsuarioAdmin" name="nombre" placeholder="Nombre(s)">
+                            <div class="invalid-feedback" id="errorNombreUser"></div>
+                        </div>
+
+                        <!-- Campo Apellido -->
+                        <div class="col-12 col-md-6">
+                            <label for="apellidoUsuarioAdmin" class="form-label fw-bold">Apellido(s)</label>
+                            <input type="text" class="form-control" id="apellidoUsuarioAdmin" name="apellido" placeholder="Apellido(s)">
+                            <div class="invalid-feedback" id="errorApellidoUser"></div>
+                        </div>
+
+                        <!-- Campo Correo -->
+                        <div class="col-12 col-md-6">
+                            <label for="emailUsuarioAdmin" class="form-label fw-bold">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="emailUsuarioAdmin" name="email" placeholder="ejemplo@duoc.cl">
+                            <div class="invalid-feedback" id="errorEmailUser"></div>
+                        </div>
+
+                        <!-- Campo Contraseña -->
+                        <div class="col-12 col-md-6">
+                            <label for="passUsuarioAdmin" class="form-label fw-bold">Contraseña</label>
+                            <input type="password" class="form-control" id="passUsuarioAdmin" name="password" placeholder="••••••••">
+                            <div class="invalid-feedback" id="errorPassUser"></div>
+                        </div>
+
+                        <!-- Campo Región -->
+                        <div class="col-12 col-md-6">
+                            <label for="regionUsuario" class="form-label fw-bold">Región</label>
+                            <select class="form-select" id="regionUsuario" name="region">
+                                <option value="" selected disabled>Selecciona una región</option>
+                            </select>
+                            <div class="invalid-feedback" id="errorRegion"></div>
+                        </div>
+
+                        <!-- Campo Comuna -->
+                        <div class="col-12 col-md-6">
+                            <label for="comunaUsuario" class="form-label fw-bold">Comuna</label>
+                            <select class="form-select" id="comunaUsuario" name="comuna" disabled>
+                                <option value="" selected disabled>Selecciona primero una región</option>
+                            </select>
+                            <div class="invalid-feedback" id="errorComuna"></div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-contacto">Guardar Usuario</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

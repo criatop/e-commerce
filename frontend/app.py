@@ -75,7 +75,7 @@ def admin_productos():
 
 @app.route("/admin/productos/form")
 def admin_producto_form():
-    return render_template("admin-producto-form.html")
+    return render_template("admin-productos-form.html")
 
 
 @app.route("/admin/usuarios")

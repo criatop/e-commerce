@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Guía de Tendencias - Pink & Pink{% endblock %}
+
+{% block content %}
+<main class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{{ url_for('blog') }}" class="btn btn-outline-secondary mb-4 btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Volver al blog
+            </a>
+            <article class="p-4 p-md-5 caja-detalle-blog">
+                <span class="badge rounded-pill mb-3 badge-blog">Tendencias</span>
+                <h1 class="fw-bold display-6 titulo-blog mb-3">Guía de Tendencias: Accesorios de Primavera</h1>
+                <p class="text-muted small mb-4">Publicado por <strong>Equipo Pink & Pink</strong></p>
+                
+                <p class="text-secondary lead">
+                    La primavera trae consigo colores vibrantes, texturas ligeras y combinaciones audaces que transforman cualquier atuendo básico en una declaración de estilo.
+                </p>
+                <p class="text-secondary">
+                    En esta temporada, la tendencia principal se centra en el contraste entre acabados dorados y tonos pastel como el rosa suave y el lavanda. Los aros grandes y los collares en capas son los accesorios indispensables que no pueden faltar en tu colección.
+                </p>
+            </article>
+        </div>
+    </div>
+</main>
+{% endblock %}
