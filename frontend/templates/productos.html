@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Catálogo de accesorios · Pink &amp; Pink{% endblock %}
+{% block title %}Catálogo de Accesorios · Pink &amp; Pink{% endblock %}
 
 {% block content %}
 <section class="container-section">
-  <h1 class="section-title">Catálogo de accesorios</h1>
+  <h1 class="section-title">Catálogo de Accesorios</h1>
 
-  <div class="row g-3 mb-4 bg-pink-panel p-3 rounded">
+  <div class="row g-3 mb-4 bg-pink-panel p-3 rounded-4 shadow-sm">
     <div class="col-md-8">
       <div class="input-group">
-        <span class="input-group-text bg-transparent text-muted"><i class="bi bi-search"></i></span>
-        <input type="text" id="buscadorProductos" class="form-control" placeholder="Buscar accesorio por nombre...">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" id="buscadorProductos" class="form-control border-0" placeholder="Buscar accesorio por nombre...">
       </div>
     </div>
     <div class="col-md-4">
-      <select id="filtroCategoria" class="form-select"></select>
+      <select id="filtroCategoria" class="form-select border-0"></select>
     </div>
   </div>
 
@@ -22,33 +22,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/storage.js') }}"></script>
 <script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
 <script src="{{ url_for('static', filename='js/productos.js') }}"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  llenarSelectCategorias("filtroCategoria", true);
-
-  var parametros = new URLSearchParams(window.location.search);
-  var categoriaInicial = parametros.get("categoria");
-  if (categoriaInicial) {
-    document.getElementById("filtroCategoria").value = categoriaInicial;
-  }
-
-  var busquedaInicial = parametros.get("q");
-  if (busquedaInicial) {
-    document.getElementById("buscadorProductos").value = busquedaInicial;
-  }
-
-  function actualizarCatalogo() {
-    mostrarCatalogo("catalogoContenedor",
-      document.getElementById("buscadorProductos").value,
-      document.getElementById("filtroCategoria").value);
-  }
-
-  document.getElementById("buscadorProductos").addEventListener("input", actualizarCatalogo);
-  document.getElementById("filtroCategoria").addEventListener("change", actualizarCatalogo);
-
-  actualizarCatalogo();
-});
-</script>
 {% endblock %}

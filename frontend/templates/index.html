@@ -89,9 +89,13 @@
   <div class="row g-4" id="destacadosContenedor"></div>
 </section>
 
-<section class="container-section">
-  <h2 class="section-title">Novedades del blog</h2>
-  <div class="row g-4" id="noticiasContenedor"></div>
+<section class="container-section text-center py-5">
+  <h2 class="section-title mb-3">Blog & Novedades</h2>
+  <p class="text-muted mb-4">Descubre las últimas tendencias, tips de cuidado y consejos de estilo que tenemos para ti.</p>
+  
+  <a href="{{ url_for('blog') }}" class="btn btn-contacto px-5 py-3 fw-semibold rounded-pill shadow-sm">
+    <i class="bi bi-journal-text me-2"></i> VER NOVEDADES
+  </a>
 </section>
 
 {% endblock %}

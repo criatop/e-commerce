@@ -45,9 +45,9 @@ main.auth-page-shell { flex: 1; width: 100%; }
 
 /* ---------- Header ---------- */
 header.site-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 18px 48px;
   border-bottom: 1px solid var(--pink-line);
 }
@@ -58,6 +58,7 @@ header.site-header {
   border-bottom: 1.5px solid var(--pink-line);
   padding-bottom: 6px;
   width: 230px;
+  justify-self: start; 
 }
 .search-box input {
   border: none;
@@ -75,6 +76,7 @@ header.site-header {
   border: 3px solid var(--pink-primary);
   padding: 12px 26px;
   text-align: center;
+  justify-self: center;
 }
 .brand-mark .name {
   margin: 0;
@@ -95,7 +97,13 @@ header.site-header {
 .brand-mark.small { padding: 8px 18px; }
 .brand-mark.small .name { font-size: 20px; }
 
-.header-icons { display: flex; align-items: center; gap: 22px; }
+.header-icons { 
+  display: flex; 
+  align-items: center; 
+  gap: 22px; 
+  justify-self: end; 
+}
+
 .header-icons a { position: relative; color: var(--text-main); }
 .header-icons svg { width: 21px; height: 21px; stroke: var(--text-main); stroke-width: 1.7; fill: none; }
 .cart-count {
@@ -382,9 +390,24 @@ nav.main-nav a:hover { color: var(--pink-primary); }
   box-shadow: var(--shadow);
   transform: translateY(-4px);
 }
-.card-nexo-hover .card-img-top { width: 100%; height: 220px; object-fit: cover; background: var(--gray-bg); }
-.card-nexo-hover .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
-.card-nexo-hover .card-text { color: var(--pink-primary); font-weight: 700; }
+.card-nexo-hover .card-img-top {
+  width: 100%;
+  height: 200px;             
+  object-fit: cover;           
+  background-color: var(--pink-soft); 
+  display: block;
+}
+.card-nexo-hover .card-title { 
+  font-size: 16px; 
+  font-weight: 600; 
+  margin-bottom: 4px; 
+  color: var(--text-main); 
+}
+
+.card-nexo-hover .card-text { 
+  color: var(--pink-primary);
+  font-weight: 700; 
+}
 
 /* ---------- Carrito ---------- */
 .empty-cart { text-align: center; padding: 40px 0; }
