@@ -298,9 +298,9 @@
   <main class="form-panel">
     <p class="eyebrow">Mi cuenta</p>
     <h2>Iniciar sesión</h2>
-    <p class="sub">¿Aún no tienes cuenta? <a href="#">Crea una aquí</a></p>
+    <p class="sub">¿Aún no tienes cuenta? <a href="{{ url_for('registro') }}">Crea una aquí</a></p>
 
-    <form>
+    <form id="formLogin">
       <div class="field">
         <label for="email">Correo electrónico</label>
         <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" required>
@@ -336,6 +336,43 @@
   </main>
 
 </div>
+
+<script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var formLogin = document.getElementById("formLogin");
+    if (!formLogin) return;
+
+    formLogin.addEventListener("submit", function (evento) {
+        evento.preventDefault();
+
+        var correo = document.getElementById("email").value.trim();
+        var password = document.getElementById("password").value;
+
+        var usuario = obtenerColeccion(CHIC_KEYS.usuarios).find(function (u) {
+            return u.correo.toLowerCase() === correo.toLowerCase() && u.password === password;
+        });
+
+        if (!usuario) {
+            Swal.fire("Credenciales incorrectas", "Revisa tu correo y contraseña.", "error");
+            return;
+        }
+        if (usuario.estado !== "Activo") {
+            Swal.fire("Cuenta inactiva", "Tu cuenta está desactivada. Contacta al administrador.", "warning");
+            return;
+        }
+
+        guardarSesion(usuario);
+
+        if (usuario.rolId === 1 || usuario.rolId === 2) {
+            window.location.href = "/admin";
+        } else {
+            window.location.href = "/cuenta";
+        }
+    });
+});
+</script>
 
 </body>
 </html>
