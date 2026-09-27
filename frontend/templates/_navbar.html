@@ -12,7 +12,11 @@
     <div class="header-icons">
     <a id="iconoCta" href="{{ url_for('cuenta') }}" aria-label="Cuenta">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+      <span class="user-iniciales" id="userIniciales" style="display:none;"></span>
     </a>
+    <button type="button" id="btnCerrarSesion" class="icono-cerrar" onclick="cerrarSesion()" title="Cerrar sesión" aria-label="Cerrar sesión" style="display:none;">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
     <a href="{{ url_for('carrito') }}" aria-label="Carrito">
       <svg viewBox="0 0 24 24"><path d="M4 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="17" cy="21" r="1"/></svg>
       <span class="cart-count" id="carritoBadge">0</span>

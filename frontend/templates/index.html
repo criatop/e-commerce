@@ -112,5 +112,58 @@ document.addEventListener("DOMContentLoaded", function () {
     mostrarNoticias("noticiasContenedor");
   }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  var slidesHero = [
+    {
+      h1: "ACCESORIOS QUE",
+      script: "hablan de ti",
+      p: "Diseños únicos, hechos para brillar en cada momento. Descubre nuestra colección de accesorios femeninos."
+    },
+    {
+      h1: "TOQUES DE",
+      script: "estilo para ti",
+      p: "Collares, aros y pulseras pensados para darle carácter a cada look, con detalles que enamoran."
+    },
+    {
+      h1: "BRILLA EN TU",
+      script: "día a día",
+      p: "Encuentra el accesorio perfecto para cada ocasión. Envíos a todo Chile y calidad garantizada."
+    }
+  ];
+
+  var textoHero = document.querySelector(".hero-text");
+  var h1Hero = textoHero.querySelector("h1");
+  var scriptHero = textoHero.querySelector(".script");
+  var parrafoHero = textoHero.querySelector("p");
+  var dotsHero = Array.prototype.slice.call(document.querySelectorAll(".hero-dots span"));
+  var arrowLeft = document.querySelector(".hero-arrow.left");
+  var arrowRight = document.querySelector(".hero-arrow.right");
+  var slideActual = 0;
+  var intervaloHero = null;
+
+  function mostrarSlide(indice) {
+    slideActual = (indice + slidesHero.length) % slidesHero.length;
+    h1Hero.textContent = slidesHero[slideActual].h1;
+    scriptHero.innerHTML = slidesHero[slideActual].script + " <span>♡</span>";
+    parrafoHero.textContent = slidesHero[slideActual].p;
+    dotsHero.forEach(function (dot, i) {
+      dot.classList.toggle("active", i === slideActual);
+    });
+  }
+
+  function reiniciarAuto() {
+    if (intervaloHero) clearInterval(intervaloHero);
+    intervaloHero = setInterval(function () { mostrarSlide(slideActual + 1); }, 4500);
+  }
+
+  arrowLeft.addEventListener("click", function () { mostrarSlide(slideActual - 1); reiniciarAuto(); });
+  arrowRight.addEventListener("click", function () { mostrarSlide(slideActual + 1); reiniciarAuto(); });
+  dotsHero.forEach(function (dot, i) {
+    dot.addEventListener("click", function () { mostrarSlide(i); reiniciarAuto(); });
+  });
+
+  reiniciarAuto();
+});
 </script>
 {% endblock %}
