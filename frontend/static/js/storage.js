@@ -8,8 +8,11 @@ const CHIC_KEYS = {
     carrito: "chic_carrito",
     contactos: "chic_contactos",
     blog: "chic_blog",
-    sesion: "chic_sesion"
+    sesion: "chic_sesion",
+    ordenes: "chic_ordenes"
 };
+
+const CHIC_VERSION = "2";
 
 function obtenerColeccion(clave) {
     return JSON.parse(localStorage.getItem(clave)) || [];
@@ -20,7 +23,9 @@ function guardarColeccion(clave, datos) {
 }
 
 function inicializarDatos() {
-    if (!localStorage.getItem(CHIC_KEYS.roles)) {
+    const semillaEstructura = localStorage.getItem("chic_version") !== CHIC_VERSION;
+
+    if (!localStorage.getItem(CHIC_KEYS.roles) || semillaEstructura) {
         guardarColeccion(CHIC_KEYS.roles, [
             { id: 1, nombre: "Admin" },
             { id: 2, nombre: "Vendedor" },
@@ -28,7 +33,7 @@ function inicializarDatos() {
         ]);
     }
 
-    if (!localStorage.getItem(CHIC_KEYS.categorias)) {
+    if (!localStorage.getItem(CHIC_KEYS.categorias) || semillaEstructura) {
         guardarColeccion(CHIC_KEYS.categorias, [
             { id: 1, nombre: "Collares", descripcion: "Collares, gargantillas y cadenas" },
             { id: 2, nombre: "Pulseras", descripcion: "Pulseras y brazaletes" },
@@ -38,15 +43,28 @@ function inicializarDatos() {
         ]);
     }
 
-    if (!localStorage.getItem(CHIC_KEYS.regiones)) {
+    if (!localStorage.getItem(CHIC_KEYS.regiones) || semillaEstructura) {
         guardarColeccion(CHIC_KEYS.regiones, [
             { id: 1, nombre: "Región Metropolitana" },
             { id: 2, nombre: "Valparaíso" },
-            { id: 3, nombre: "Biobío" }
+            { id: 3, nombre: "Biobío" },
+            { id: 4, nombre: "Arica y Parinacota" },
+            { id: 5, nombre: "Tarapacá" },
+            { id: 6, nombre: "Antofagasta" },
+            { id: 7, nombre: "Atacama" },
+            { id: 8, nombre: "Coquimbo" },
+            { id: 9, nombre: "Libertador General Bernardo O'Higgins" },
+            { id: 10, nombre: "Maule" },
+            { id: 11, nombre: "Ñuble" },
+            { id: 12, nombre: "La Araucanía" },
+            { id: 13, nombre: "Los Ríos" },
+            { id: 14, nombre: "Los Lagos" },
+            { id: 15, nombre: "Aysén del General Carlos Ibáñez del Campo" },
+            { id: 16, nombre: "Magallanes y de la Antártica Chilena" }
         ]);
     }
 
-    if (!localStorage.getItem(CHIC_KEYS.comunas)) {
+    if (!localStorage.getItem(CHIC_KEYS.comunas) || semillaEstructura) {
         guardarColeccion(CHIC_KEYS.comunas, [
             { id: 1, regionId: 1, nombre: "Santiago" },
             { id: 2, regionId: 1, nombre: "Providencia" },
@@ -54,7 +72,63 @@ function inicializarDatos() {
             { id: 4, regionId: 2, nombre: "Valparaíso" },
             { id: 5, regionId: 2, nombre: "Viña del Mar" },
             { id: 6, regionId: 3, nombre: "Concepción" },
-            { id: 7, regionId: 3, nombre: "Talcahuano" }
+            { id: 7, regionId: 3, nombre: "Talcahuano" },
+            { id: 8, regionId: 1, nombre: "Las Condes" },
+            { id: 9, regionId: 1, nombre: "Ñuñoa" },
+            { id: 10, regionId: 1, nombre: "Puente Alto" },
+            { id: 11, regionId: 1, nombre: "La Florida" },
+            { id: 12, regionId: 2, nombre: "Quilpué" },
+            { id: 13, regionId: 2, nombre: "Villa Alemana" },
+            { id: 14, regionId: 2, nombre: "San Antonio" },
+            { id: 15, regionId: 2, nombre: "Los Andes" },
+            { id: 16, regionId: 3, nombre: "Hualpén" },
+            { id: 17, regionId: 3, nombre: "San Pedro de la Paz" },
+            { id: 18, regionId: 3, nombre: "Coronel" },
+            { id: 19, regionId: 3, nombre: "Los Ángeles" },
+            { id: 20, regionId: 4, nombre: "Arica" },
+            { id: 21, regionId: 4, nombre: "Putre" },
+            { id: 22, regionId: 4, nombre: "Camarones" },
+            { id: 23, regionId: 5, nombre: "Iquique" },
+            { id: 24, regionId: 5, nombre: "Alto Hospicio" },
+            { id: 25, regionId: 5, nombre: "Pozo Almonte" },
+            { id: 26, regionId: 6, nombre: "Antofagasta" },
+            { id: 27, regionId: 6, nombre: "Calama" },
+            { id: 28, regionId: 6, nombre: "Tocopilla" },
+            { id: 29, regionId: 7, nombre: "Copiapó" },
+            { id: 30, regionId: 7, nombre: "Vallenar" },
+            { id: 31, regionId: 7, nombre: "Huasco" },
+            { id: 32, regionId: 8, nombre: "La Serena" },
+            { id: 33, regionId: 8, nombre: "Coquimbo" },
+            { id: 34, regionId: 8, nombre: "Ovalle" },
+            { id: 35, regionId: 8, nombre: "Illapel" },
+            { id: 36, regionId: 9, nombre: "Rancagua" },
+            { id: 37, regionId: 9, nombre: "San Fernando" },
+            { id: 38, regionId: 9, nombre: "Santa Cruz" },
+            { id: 39, regionId: 9, nombre: "Rengo" },
+            { id: 40, regionId: 10, nombre: "Talca" },
+            { id: 41, regionId: 10, nombre: "Curicó" },
+            { id: 42, regionId: 10, nombre: "Linares" },
+            { id: 43, regionId: 10, nombre: "Constitución" },
+            { id: 44, regionId: 11, nombre: "Chillán" },
+            { id: 45, regionId: 11, nombre: "San Carlos" },
+            { id: 46, regionId: 11, nombre: "Quillón" },
+            { id: 47, regionId: 12, nombre: "Temuco" },
+            { id: 48, regionId: 12, nombre: "Villarrica" },
+            { id: 49, regionId: 12, nombre: "Pucón" },
+            { id: 50, regionId: 12, nombre: "Angol" },
+            { id: 51, regionId: 13, nombre: "Valdivia" },
+            { id: 52, regionId: 13, nombre: "La Unión" },
+            { id: 53, regionId: 13, nombre: "Río Bueno" },
+            { id: 54, regionId: 14, nombre: "Puerto Montt" },
+            { id: 55, regionId: 14, nombre: "Osorno" },
+            { id: 56, regionId: 14, nombre: "Castro" },
+            { id: 57, regionId: 14, nombre: "Ancud" },
+            { id: 58, regionId: 15, nombre: "Coyhaique" },
+            { id: 59, regionId: 15, nombre: "Puerto Aysén" },
+            { id: 60, regionId: 15, nombre: "Chile Chico" },
+            { id: 61, regionId: 16, nombre: "Punta Arenas" },
+            { id: 62, regionId: 16, nombre: "Puerto Natales" },
+            { id: 63, regionId: 16, nombre: "Porvenir" }
         ]);
     }
 
@@ -103,6 +177,10 @@ function inicializarDatos() {
     if (!localStorage.getItem(CHIC_KEYS.contactos)) {
         guardarColeccion(CHIC_KEYS.contactos, []);
     }
+
+    if (semillaEstructura) {
+        localStorage.setItem("chic_version", CHIC_VERSION);
+    }
 }
 
 /* ---------- Sesión ---------- */
@@ -148,9 +226,34 @@ function actualizarNavbar() {
     if (iconoCta) {
         if (sesion && (sesion.rolId === 1 || sesion.rolId === 2)) {
             iconoCta.href = "/admin";
+            iconoCta.title = "Panel de administración";
+        } else if (sesion) {
+            iconoCta.href = "/cuenta";
+            iconoCta.title = "Mi cuenta";
         } else {
             iconoCta.href = "/cuenta";
+            iconoCta.title = "Iniciar sesión";
         }
+        iconoCta.classList.toggle("activa", !!sesion);
+
+        const inicialesEl = document.getElementById("userIniciales");
+        if (inicialesEl) {
+            if (sesion && sesion.nombre) {
+                const iniciales = (sesion.nombre + " " + (sesion.apellidos || "")).trim()
+                    .split(/\s+/).slice(0, 2)
+                    .map(function (p) { return p.charAt(0).toUpperCase(); })
+                    .join("");
+                inicialesEl.textContent = iniciales;
+                inicialesEl.style.display = "inline-flex";
+            } else {
+                inicialesEl.textContent = "";
+                inicialesEl.style.display = "none";
+            }
+        }
+    }
+    const btnCerrar = document.getElementById("btnCerrarSesion");
+    if (btnCerrar) {
+        btnCerrar.style.display = sesion ? "flex" : "none";
     }
 }
 

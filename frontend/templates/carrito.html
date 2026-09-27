@@ -1,6 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Mi carrito · Pink &amp; Pink{% endblock %}
 
+{% block extra_css %}
+<style>
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+  .checkout-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 900px) { .checkout-grid { grid-template-columns: 1fr 1fr; } }
+  .checkout-col { background: #fff9fb; border: 1.5px solid var(--pink-line); border-radius: 14px; padding: 22px; }
+  .checkout-col h3 { font-size: 15px; font-weight: 700; color: var(--pink-dark); margin: 0 0 14px; }
+  fieldset { border: none; margin: 0; padding: 0; }
+  legend { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
+  .opcion-envio, .opcion-pago {
+    display: flex; align-items: flex-start; gap: 10px;
+    border: 1.5px solid var(--pink-line); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+    background: var(--white); transition: border-color .15s ease, background .15s ease;
+  }
+  .opcion-envio:hover, .opcion-pago:hover { border-color: var(--pink-primary); }
+  .opcion-envio.sel, .opcion-pago.sel { border-color: var(--pink-primary); background: #fff0f7; }
+  .opcion-envio input, .opcion-pago input { margin-top: 3px; accent-color: var(--pink-primary); }
+  .opcion-envio .op-titulo, .opcion-pago .op-titulo { font-weight: 600; font-size: 13.5px; color: var(--text-main); }
+  .opcion-envio small, .opcion-pago small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+  .opcion-envio .op-costo { font-size: 13px; color: var(--pink-primary); font-weight: 700; white-space: nowrap; }
+  .resumen-final div { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+  .resumen-final .grand { border-top: 1px solid var(--pink-line); padding-top: 10px; font-size: 16px; font-weight: 700; color: var(--pink-dark); }
+  .nota-retiro { font-size: 13px; color: var(--text-muted); }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="container-section">
   <h1 class="section-title">Mi carrito</h1>
@@ -26,11 +53,137 @@
       </table>
     </div>
 
-    <div class="carrito-resumen">
+    <div class="carrito-resumen" id="carritoResumen">
       <p>Total: <strong id="carritoTotal">$0</strong></p>
       <div class="d-flex gap-2 justify-content-end">
         <button class="btn btn-outline-danger" onclick="vaciarCarrito()">Vaciar carrito</button>
-        <button class="btn btn-accent" onclick="finalizarCompra()">Finalizar compra</button>
+        <button class="btn btn-accent" onclick="abrirCheckout()">Finalizar compra</button>
+      </div>
+    </div>
+
+    <!-- Checkout -->
+    <div id="checkoutPanel" style="display:none;" class="mt-4">
+      <h2 class="section-title">Finalizar compra</h2>
+
+      <div class="checkout-grid">
+
+        <div class="checkout-col" id="colEntrega">
+          <h3>Datos de entrega</h3>
+
+          <div class="mb-2 field">
+            <label for="coNombre">Nombre completo</label>
+            <input type="text" class="form-control" id="coNombre" placeholder="Tu nombre y apellido">
+          </div>
+
+          <div class="mb-2 field" id="coCampoDireccion">
+            <label for="coDireccion">Dirección</label>
+            <input type="text" class="form-control" id="coDireccion" placeholder="Calle, número, depto/casa">
+          </div>
+
+          <div class="row">
+            <div class="col-6 mb-2 field">
+              <label for="coRegion">Región</label>
+              <select class="form-select" id="coRegion">
+                <option value="" selected disabled>Selecciona</option>
+              </select>
+            </div>
+            <div class="col-6 mb-2 field">
+              <label for="coComuna">Comuna</label>
+              <select class="form-select" id="coComuna" disabled>
+                <option value="" selected disabled>Primero región</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-2 field">
+            <label for="coTelefono">Teléfono (opcional)</label>
+            <input type="tel" class="form-control" id="coTelefono" placeholder="+56 9 1234 5678">
+          </div>
+        </div>
+
+        <div>
+          <div class="checkout-col mb-3">
+            <h3>Método de envío</h3>
+            <fieldset>
+              <legend>Elige cómo recibir tu pedido</legend>
+              <label class="opcion-envio" data-costo="0">
+                <input type="radio" name="envio" value="retiro" checked>
+                <span class="flex-grow-1">
+                  <span class="op-titulo">Retiro en tienda</span>
+                  <small>Sin costo · Retiras en nuestra tienda</small>
+                </span>
+                <span class="op-costo">Gratis</span>
+              </label>
+              <label class="opcion-envio" data-costo="2990">
+                <input type="radio" name="envio" value="estandar">
+                <span class="flex-grow-1">
+                  <span class="op-titulo">Despacho a domicilio estándar</span>
+                  <small>3 a 5 días hábiles</small>
+                </span>
+                <span class="op-costo">$2.990</span>
+              </label>
+              <label class="opcion-envio" data-costo="4990">
+                <input type="radio" name="envio" value="express">
+                <span class="flex-grow-1">
+                  <span class="op-titulo">Despacho express</span>
+                  <small>1 a 2 días hábiles</small>
+                </span>
+                <span class="op-costo">$4.990</span>
+              </label>
+            </fieldset>
+            <p class="nota-retiro mb-0" id="notaRetiro" style="display:none;">
+              Retiro en tienda: Av. Principal 123, Santiago · Lunes a sábado 10:00 a 19:00 hrs.
+            </p>
+          </div>
+
+          <div class="checkout-col">
+            <h3>Método de pago</h3>
+            <fieldset>
+              <legend>Elige cómo pagar</legend>
+              <label class="opcion-pago">
+                <input type="radio" name="pago" value="webpay" checked>
+                <span>
+                  <span class="op-titulo">Tarjeta de crédito / débito</span>
+                  <small>Pago seguro a través de Webpay</small>
+                </span>
+              </label>
+              <label class="opcion-pago">
+                <input type="radio" name="pago" value="transferencia">
+                <span>
+                  <span class="op-titulo">Transferencia bancaria</span>
+                  <small>Te enviamos los datos por correo</small>
+                </span>
+              </label>
+              <label class="opcion-pago">
+                <input type="radio" name="pago" value="contraentrega">
+                <span>
+                  <span class="op-titulo">Pago contra entrega</span>
+                  <small>Paga al recibir tu pedido</small>
+                </span>
+              </label>
+              <label class="opcion-pago">
+                <input type="radio" name="pago" value="paypal">
+                <span>
+                  <span class="op-titulo">PayPal</span>
+                  <small>Pago internacional con PayPal</small>
+                </span>
+              </label>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-col mt-3">
+        <h3>Resumen de tu pedido</h3>
+        <div class="resumen-final">
+          <div><span>Subtotal</span><span id="coSubtotal">$0</span></div>
+          <div><span>Envío</span><span id="coEnvio">Gratis</span></div>
+          <div class="grand"><span>Total</span><span id="coTotal">$0</span></div>
+        </div>
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <button class="btn btn-outline-secondary" onclick="volverAlCarrito()">Volver al carrito</button>
+          <button class="btn btn-accent" onclick="confirmarPedido()">Confirmar pedido</button>
+        </div>
       </div>
     </div>
   </div>

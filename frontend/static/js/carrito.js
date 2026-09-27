@@ -75,14 +75,254 @@ function vaciarCarrito() {
     });
 }
 
-function finalizarCompra() {
+/* ---------- Checkout ---------- */
+
+var regionesCheckoutCargadas = false;
+
+function abrirCheckout() {
+    const carrito = obtenerColeccion(CHIC_KEYS.carrito);
+    if (carrito.length === 0) return;
+
+    cargarRegionesCheckout();
+    cargarDatosSesionCheckout();
+    alternarDatosEntrega();
+    actualizarResumenCheckout();
+
+    const panel = document.getElementById("checkoutPanel");
+    panel.style.display = "block";
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function volverAlCarrito() {
+    const panel = document.getElementById("checkoutPanel");
+    panel.style.display = "none";
+    const resumen = document.getElementById("carritoResumen");
+    if (resumen) resumen.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function cargarRegionesCheckout() {
+    if (regionesCheckoutCargadas) return;
+    const regionSelect = document.getElementById("coRegion");
+    const comunaSelect = document.getElementById("coComuna");
+
+    obtenerColeccion(CHIC_KEYS.regiones).forEach(function (region) {
+        const opt = document.createElement("option");
+        opt.value = region.nombre;
+        opt.textContent = region.nombre;
+        regionSelect.appendChild(opt);
+    });
+
+    regionSelect.addEventListener("change", function () {
+        llenarComunasCheckout(regionSelect.value, comunaSelect);
+    });
+    document.querySelectorAll('input[name="envio"]').forEach(function (input) {
+        input.addEventListener("change", function () {
+            marcarSeleccion(".opcion-envio");
+            alternarDatosEntrega();
+            actualizarResumenCheckout();
+        });
+    });
+    document.querySelectorAll('input[name="pago"]').forEach(function (input) {
+        input.addEventListener("change", function () {
+            marcarSeleccion(".opcion-pago");
+        });
+    });
+    regionesCheckoutCargadas = true;
+}
+
+function llenarComunasCheckout(regionNombre, comunaSelect) {
+    const comunas = obtenerColeccion(CHIC_KEYS.comunas);
+    const region = obtenerColeccion(CHIC_KEYS.regiones).find(function (r) { return r.nombre === regionNombre; });
+
+    comunaSelect.innerHTML = "";
+    if (!region) {
+        comunaSelect.disabled = true;
+        return;
+    }
+    comunaSelect.disabled = false;
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Selecciona una comuna";
+    placeholder.selected = true;
+    placeholder.disabled = true;
+    comunaSelect.appendChild(placeholder);
+
+    comunas.forEach(function (comuna) {
+        if (comuna.regionId === region.id) {
+            const opt = document.createElement("option");
+            opt.value = comuna.nombre;
+            opt.textContent = comuna.nombre;
+            comunaSelect.appendChild(opt);
+        }
+    });
+
+    if (comunaSelect.options.length === 1) {
+        comunaSelect.disabled = true;
+    }
+}
+
+function cargarDatosSesionCheckout() {
+    const sesion = obtenerSesion();
+    if (sesion) {
+        const nombreInput = document.getElementById("coNombre");
+        if (sesion.nombre && !nombreInput.value) {
+            nombreInput.value = (sesion.nombre + " " + (sesion.apellidos || "")).trim();
+        }
+        if (sesion.regionId && sesion.comunaId) {
+            const region = obtenerColeccion(CHIC_KEYS.regiones).find(function (r) { return r.id === sesion.regionId; });
+            const comuna = obtenerColeccion(CHIC_KEYS.comunas).find(function (c) { return c.id === sesion.comunaId; });
+            const regionSelect = document.getElementById("coRegion");
+            const comunaSelect = document.getElementById("coComuna");
+            if (region && regionSelect) {
+                regionSelect.value = region.nombre;
+                llenarComunasCheckout(region.nombre, comunaSelect);
+                if (comuna && comunaSelect) comunaSelect.value = comuna.nombre;
+            }
+        }
+    }
+}
+
+function marcarSeleccion(grupo) {
+    document.querySelectorAll(grupo).forEach(function (opcion) {
+        const input = opcion.querySelector("input");
+        opcion.classList.toggle("sel", !!input && input.checked);
+    });
+}
+
+function alternarDatosEntrega() {
+    const envioSel = document.querySelector('input[name="envio"]:checked');
+    const esRetiro = envioSel && envioSel.value === "retiro";
+    const col = document.getElementById("colEntrega");
+    const nota = document.getElementById("notaRetiro");
+    if (esRetiro) {
+        if (col) col.style.display = "none";
+        if (nota) nota.style.display = "block";
+        if (document.getElementById("coComuna")) document.getElementById("coComuna").disabled = true;
+    } else {
+        if (col) col.style.display = "block";
+        if (nota) nota.style.display = "none";
+    }
+}
+
+function obtenerCostoEnvio() {
+    const envioSel = document.querySelector('input[name="envio"]:checked');
+    if (!envioSel) return 0;
+    const label = envioSel.closest(".opcion-envio");
+    return label ? Number(label.getAttribute("data-costo")) || 0 : 0;
+}
+
+function actualizarResumenCheckout() {
+    const subtotal = calcularTotal();
+    const costoEnvio = obtenerCostoEnvio();
+
+    const elSubtotal = document.getElementById("coSubtotal");
+    const elEnvio = document.getElementById("coEnvio");
+    const elTotal = document.getElementById("coTotal");
+    if (elSubtotal) elSubtotal.textContent = formatearPrecio(subtotal);
+    if (elEnvio) elEnvio.textContent = costoEnvio === 0 ? "Gratis" : formatearPrecio(costoEnvio);
+    if (elTotal) elTotal.textContent = formatearPrecio(subtotal + costoEnvio);
+}
+
+function confirmarPedido() {
+    const carrito = obtenerColeccion(CHIC_KEYS.carrito);
+    if (carrito.length === 0) return;
+
+    const envioSel = document.querySelector('input[name="envio"]:checked');
+    const pagoSel = document.querySelector('input[name="pago"]:checked');
+    const esRetiro = envioSel && envioSel.value === "retiro";
+
+    const nombre = (document.getElementById("coNombre").value || "").trim();
+    const direccion = (document.getElementById("coDireccion").value || "").trim();
+    const region = document.getElementById("coRegion").value;
+    const comuna = document.getElementById("coComuna").value;
+    const telefono = (document.getElementById("coTelefono").value || "").trim();
+
+    if (!nombre) {
+        Swal.fire("Falta tu nombre", "Ingresa tu nombre completo para continuar.", "warning");
+        return;
+    }
+    if (!envioSel) {
+        Swal.fire("Elige envío", "Selecciona un método de envío.", "warning");
+        return;
+    }
+    if (!esRetiro) {
+        if (!direccion) {
+            Swal.fire("Falta la dirección", "Ingresa la dirección de despacho.", "warning");
+            return;
+        }
+        if (!region) {
+            Swal.fire("Falta la región", "Selecciona tu región.", "warning");
+            return;
+        }
+        if (!comuna) {
+            Swal.fire("Falta la comuna", "Selecciona tu comuna.", "warning");
+            return;
+        }
+    }
+    if (!pagoSel) {
+        Swal.fire("Elige pago", "Selecciona un método de pago.", "warning");
+        return;
+    }
+
+    const productos = obtenerColeccion(CHIC_KEYS.productos);
+    const items = [];
+    for (let i = 0; i < carrito.length; i++) {
+        const producto = productos.find(function (p) { return p.codigo === carrito[i].codigo; });
+        if (!producto) continue;
+        items.push({
+            codigo: producto.codigo,
+            nombre: producto.nombre,
+            precio: producto.precio,
+            cantidad: carrito[i].cantidad,
+            subtotal: producto.precio * carrito[i].cantidad
+        });
+    }
+
+    const costoEnvio = obtenerCostoEnvio();
+    const subtotal = calcularTotal();
+    const total = subtotal + costoEnvio;
+
+    const ordenes = obtenerColeccion(CHIC_KEYS.ordenes);
+    const folio = "PP-" + String(ordenes.length + 1).padStart(4, "0");
+
+    const pedido = {
+        folio: folio,
+        fecha: new Date().toISOString(),
+        items: items,
+        subtotal: subtotal,
+        envio: {
+            metodo: envioSel.value,
+            costo: costoEnvio
+        },
+        pago: {
+            metodo: pagoSel.value
+        },
+        entrega: {
+            nombre: nombre,
+            direccion: esRetiro ? "Retiro en tienda" : direccion,
+            region: esRetiro ? "Región Metropolitana" : region,
+            comuna: esRetiro ? "Santiago" : comuna,
+            telefono: telefono
+        },
+        total: total,
+        estado: "Pendiente"
+    };
+
+    ordenes.push(pedido);
+    guardarColeccion(CHIC_KEYS.ordenes, ordenes);
+
     Swal.fire({
-        title: "¡Gracias por tu compra!",
-        text: "Tu pedido ha sido registrado (simulación). " + formatearPrecio(calcularTotal()),
         icon: "success",
+        title: "¡Gracias por tu compra!",
+        html: "Tu pedido <strong>" + folio + "</strong> ha sido registrado por " +
+            formatearPrecio(total) + " (envío: " +
+            (costoEnvio === 0 ? "Gratis" : formatearPrecio(costoEnvio)) + ").<br>Te contactaremos pronto para coordinar la entrega.",
         confirmButtonColor: "#f0568f"
     });
+
     guardarColeccion(CHIC_KEYS.carrito, []);
+    const panel = document.getElementById("checkoutPanel");
+    if (panel) panel.style.display = "none";
     renderizarCarrito();
     actualizarBadgeCarrito();
 }
