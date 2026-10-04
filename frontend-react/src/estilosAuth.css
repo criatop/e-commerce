@@ -1,0 +1,264 @@
+/* Estilos de /login y /registro.
+   Venían como <style> dentro de cada template Flask.
+   Todos los selectores están acotados bajo .page para no chocar con
+   .brand-mark, .field y .btn-primary del navbar y del resto del sitio. */
+
+.page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 48px auto 72px;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 580px;
+  background: var(--white);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* El registro usa la proporción inversa (más espacio para el formulario) */
+.page-registro {
+  grid-template-columns: 0.85fr 1.15fr;
+}
+
+/* ---------- Panel izquierdo de marca ---------- */
+.page .brand-panel {
+  position: relative;
+  background: linear-gradient(155deg, #ffe2ee 0%, #ffc6de 55%, #f8a6c9 100%);
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.page .brand-panel::before,
+.page .brand-panel::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+}
+.page .brand-panel::before { width: 220px; height: 220px; top: -70px; right: -70px; }
+.page .brand-panel::after { width: 140px; height: 140px; bottom: -40px; left: -40px; border-color: rgba(255, 255, 255, 0.4); }
+
+.page .brand-mark {
+  position: relative;
+  z-index: 1;
+  border: 3px solid var(--white);
+  padding: 18px 26px;
+  display: inline-block;
+  align-self: flex-start;
+}
+.page .brand-mark .name {
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  line-height: 1;
+  margin: 0;
+}
+.page .brand-mark .by {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.page .brand-copy { position: relative; z-index: 1; }
+.page .brand-copy h1 {
+  font-size: 40px;
+  line-height: 1.05;
+  margin: 0 0 6px;
+  color: var(--white);
+  font-weight: 800;
+}
+.page .brand-copy .script {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: 44px;
+  color: var(--white);
+  display: block;
+  margin-top: -4px;
+}
+.page .brand-copy p {
+  margin: 18px 0 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.page .brand-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 28px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+.page .brand-footer span { display: flex; align-items: center; gap: 6px; }
+.page .brand-footer svg { width: 16px; height: 16px; }
+
+/* ---------- Panel derecho con el formulario ---------- */
+.page .form-panel {
+  padding: 64px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.page-registro .form-panel { padding: 56px; }
+
+.page .form-panel .eyebrow {
+  color: var(--pink-primary);
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+.page .form-panel h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.page .form-panel .sub {
+  margin: 0 0 32px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.page-registro .form-panel .sub { margin-bottom: 28px; }
+.page .form-panel .sub a { color: var(--pink-primary); font-weight: 600; text-decoration: none; }
+.page .form-panel .sub a:hover { text-decoration: underline; }
+
+.page form { display: flex; flex-direction: column; gap: 20px; }
+.page-registro form { gap: 18px; }
+
+.page .grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.page .field { display: flex; flex-direction: column; gap: 8px; }
+.page .field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.page .field input,
+.page .field .form-control,
+.page .field .form-select {
+  border: 1.5px solid var(--pink-line);
+  background: #fff9fb;
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  box-shadow: none;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.page .field input::placeholder,
+.page .field .form-control::placeholder { color: #c7a9ba; }
+.page .field input:focus,
+.page .field .form-control:focus,
+.page .field .form-select:focus {
+  border-color: var(--pink-primary);
+  box-shadow: 0 0 0 4px rgba(240, 86, 143, 0.14);
+}
+.page .field .form-control.is-invalid,
+.page .field .form-select.is-invalid { border-color: #e04a6b; }
+.page .invalid-feedback { font-size: 12px; }
+
+.page .row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.page .remember { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.page .remember input { accent-color: var(--pink-primary); width: 15px; height: 15px; padding: 0; }
+.page .forgot { color: var(--pink-primary); text-decoration: none; font-weight: 600; }
+.page .forgot:hover { text-decoration: underline; }
+
+.page .btn-primary,
+.page .btn-primary-pink {
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 15px 20px;
+  background: var(--pink-primary);
+  color: var(--white);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s ease, transform .1s ease;
+}
+.page .btn-primary:hover,
+.page .btn-primary-pink:hover { background: var(--pink-primary-hover); }
+.page .btn-primary:active,
+.page .btn-primary-pink:active { transform: translateY(1px); }
+
+.page .divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.page .divider::before,
+.page .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--pink-line);
+}
+
+.page .btn-secondary {
+  border: 1.5px solid var(--pink-line);
+  background: var(--white);
+  border-radius: 999px;
+  padding: 13px 20px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.page .btn-secondary:hover { border-color: var(--pink-primary); background: #fff5f9; }
+
+.page .signup-note {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.page-registro .signup-note { margin-top: 24px; }
+.page .signup-note a { color: var(--pink-dark); font-weight: 700; text-decoration: none; }
+.page .signup-note a:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .page { grid-template-columns: 1fr; border-radius: 0; margin-top: 24px; margin-bottom: 40px; }
+  .page .brand-panel { display: none; }
+  .page .form-panel { padding: 48px 28px; }
+}
+@media (max-width: 900px) {
+  .page .grid-2 { grid-template-columns: 1fr; }
+}
+
+.page :focus-visible { outline: 2px solid var(--pink-dark); outline-offset: 2px; }
