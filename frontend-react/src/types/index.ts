@@ -14,15 +14,16 @@ password: string; fechaNacimiento: string;
 rolId: number; regionId: number; comunaId: number;
 direccion: string; estado: Estado;
 }
-export interface Sesion {
-run: string; nombre: string; apellidos: string; correo: string;
-rolId: number; regionId: number; comunaId: number;
-}
+export interface Sesion { run: string; nombre: string; apellidos: string;
+correo: string; fechaNacimiento: string; rolId: number; regionId: number; comunaId: number; 
+direccion: string; estado: Estado;}
 export interface ItemCarrito { codigo: string; cantidad: number }
-export interface Noticia {
-id: number; titulo: string; resumen: string;
-imagen: string; fecha: string; slug: string;
+
+export interface Noticia { id: number; titulo: string; resumen: string;
+imagen: string; fecha: string; slug: string; categoria: string;
+autor: string; parrafos: string[];
 }
+
 export interface Mensaje {
 nombre: string; apellido: string; email: string; mensaje: string;
 }

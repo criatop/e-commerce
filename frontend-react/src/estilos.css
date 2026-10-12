@@ -652,3 +652,51 @@ footer.site-footer {
   color: var(--pink-dark);
   padding: 0.5em 0.8em;
 }
+
+
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+.checkout-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 900px) { .checkout-grid { grid-template-columns: 1fr 1fr; } }
+.checkout-col { background: #fff9fb; border: 1.5px solid var(--pink-line); border-radius: 14px; padding: 22px; }
+.checkout-col h3 { font-size: 15px; font-weight: 700; color: var(--pink-dark); margin: 0 0 14px; }
+.checkout-col fieldset { border: none; margin: 0; padding: 0; }
+.checkout-col legend { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
+.opcion-envio, .opcion-pago {
+  display: flex; align-items: flex-start; gap: 10px;
+  border: 1.5px solid var(--pink-line); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+  background: var(--white); transition: border-color .15s ease, background .15s ease;
+}
+.opcion-envio:hover, .opcion-pago:hover { border-color: var(--pink-primary); }
+.opcion-envio.sel, .opcion-pago.sel { border-color: var(--pink-primary); background: #fff0f7; }
+.opcion-envio input, .opcion-pago input { margin-top: 3px; accent-color: var(--pink-primary); }
+
+.opcion-envio .op-titulo, .opcion-pago .op-titulo { font-weight: 600; font-size: 13.5px; color: var(--text-main); }
+
+.opcion-envio small, .opcion-pago small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+.opcion-envio .op-costo { font-size: 13px; color: var(--pink-primary); font-weight: 700; white-space: nowrap; }
+.resumen-final div { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.resumen-final .grand { border-top: 1px solid var(--pink-line); padding-top: 10px; font-size: 16px; font-weight: 700; color: var(--pink-dark); }
+.nota-retiro { font-size: 13px; color: var(--text-muted); }
+.avatar-iniciales {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--pink-primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: 1px;
+
+  /* Thumbnail de producto en el panel admin */ 
+  .thumb-producto-admin { 
+    width: 44px; height: 44px; 
+    border-radius: 10px; overflow: hidden;
+    background: var(--pink-bg); display: inline-flex; 
+    align-items: center; justify-content: center; 
+    flex-shrink: 0; } .thumb-producto-admin img { width: 100%; height: 100%; } object-fit: contain;
+}
+

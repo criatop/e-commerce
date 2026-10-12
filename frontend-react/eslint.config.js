@@ -1,3 +1,4 @@
+import { createContext, useContext, useState, ReactNode } from "react";
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -8,7 +9,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -18,5 +19,9 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+  },
+    {
+    files: ['src/context//*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 ])
