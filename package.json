@@ -5,5 +5,12 @@
     "react-bootstrap": "^2.10.10",
     "react-router-dom": "^7.18.4",
     "sweetalert2": "^11.26.25"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^7.0.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-jasmine-html-reporter": "^2.3.0",
+    "karma-typescript": "^5.5.4"
   }
 }
