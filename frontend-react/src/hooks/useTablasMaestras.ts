@@ -18,4 +18,3 @@ export function useTablasMaestras() {
 
   return { categorias, regiones, comunas, roles, nombreCategoria, comunasDe };
 }
-/Actua como una lista de referencia que no depende del usuario/

@@ -21,13 +21,10 @@ import AdminProductoForm from "./pages/admin/AdminProductoForm";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
-export default function App() {
+export function AppRoutes() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
+    <Routes>
+      <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/productos" element={<Productos />} />
               <Route path="/producto-detalle" element={<ProductoDetalle />} />
@@ -62,8 +59,17 @@ export default function App() {
                 <Route path="/admin/usuarios" element={<AdminUsuarios />} />
                 <Route path="/admin/usuarios/form" element={<AdminUsuarioForm />} />
               </Route>
-            </Route>
-          </Routes>
+      </Route>
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <AppRoutes />
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
