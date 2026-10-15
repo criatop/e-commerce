@@ -14,6 +14,7 @@ function envolver(ui: React.ReactNode) {
 }
 
 // 2. Abajo: lo que pegaste, pero con tilde
+//probar cuando se acepte el signo + aumenta 
 describe('Carrito vacio', () => {
   test('muestra mensaje cuando esta vacio', () => {
     render(envolver(<Carrito />));

@@ -42,5 +42,6 @@ describe('TarjetaProducto props', () => {
   render(envolver(<TarjetaProducto producto={fake} />));
   await user.click(screen.getByRole('button', { name: /adir al carrito/i }));
   expect(JSON.parse(localStorage.getItem('chic_carrito')!)).toHaveLength(1);
+  ///Lo que grabo sea realmente aros para comprobar 
 });
 });

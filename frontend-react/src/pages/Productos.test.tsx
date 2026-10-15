@@ -12,7 +12,8 @@ beforeEach(() => { localStorage.clear(); inicializarDatos(); });
 function envolver(ui: React.ReactNode) {
   return (<MemoryRouter><AuthProvider><CartProvider>{ui}</CartProvider></AuthProvider></MemoryRouter>);
 }
-
+//CTotal(cambia de estado)
+//prueba evento, usa un onchage
   describe('Productos lista', () => {
   test('renderiza todas las tarjetas', () => {
     render(envolver(<Productos />));
