@@ -19,29 +19,54 @@ vi.mock('../../utils/alerta', () => ({
   }
 }));
 
-beforeEach(() => { localStorage.clear(); inicializarDatos(); });
+beforeEach(() => { 
+  localStorage.clear(); 
+  inicializarDatos(); 
+});
 
 function envolver(ui: React.ReactNode) {
-  return (<MemoryRouter><AuthProvider><CartProvider>{ui}</CartProvider></AuthProvider></MemoryRouter>);
+  return (
+    <MemoryRouter>
+      <AuthProvider>
+        <CartProvider>{ui}</CartProvider>
+      </AuthProvider>
+    </MemoryRouter>
+  );
 }
 
 const fake: Producto = {
-  codigo: 'CH-001', nombre: 'Aros Dorados', descripcion: 'test',
-  precio: 11500, stock: 15, stockCritico: 4,
-  categoriaId: 3, imagen: 'x.jpg', estado: 'Activo'
+  codigo: 'CH-001', 
+  nombre: 'Aros Dorados', 
+  descripcion: 'test',
+  precio: 11500, 
+  stock: 15, 
+  stockCritico: 4,
+  categoriaId: 3, 
+  imagen: 'x.jpg', 
+  estado: 'Activo'
 };
 
 describe('TarjetaProducto props', () => {
+  // 1. Prueba de propiedades
   test('muestra nombre y boton', () => {
     render(envolver(<TarjetaProducto producto={fake} />));
     expect(screen.getByText('Aros Dorados')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /adir al carrito/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /añadir al carrito/i })).toBeInTheDocument();
   });
-  test('clic agrega al carrito', async () => {
-  const user = userEvent.setup();
-  render(envolver(<TarjetaProducto producto={fake} />));
-  await user.click(screen.getByRole('button', { name: /adir al carrito/i }));
-  expect(JSON.parse(localStorage.getItem('chic_carrito')!)).toHaveLength(1);
-  ///Lo que grabo sea realmente aros para comprobar 
-});
+
+  // 2. Prueba de evento e inspección de contenido guardado por código
+  test('clic agrega al carrito y comprueba que se guardaron los aros', async () => {
+    const user = userEvent.setup();
+    render(envolver(<TarjetaProducto producto={fake} />));
+
+    await user.click(screen.getByRole('button', { name: /añadir al carrito/i }));
+
+    const carrito = JSON.parse(localStorage.getItem('chic_carrito') || '[]');
+
+    // 1. Corroboramos la cantidad agregada
+    expect(carrito).toHaveLength(1);
+
+    // 2. Comprobamos que el código guardado coincida con el de los Aros Dorados ('CH-001')
+    expect(carrito[0].codigo).toBe(fake.codigo);
+  });
 });
