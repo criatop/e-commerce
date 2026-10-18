@@ -54,21 +54,25 @@ describe('Pruebas de Carrito', () => {
 
   // 3. PRUEBA DE ESTADO (useState - actualización del total)
   test('Prueba de estado (useState): el monto total cambia al modificar el carrito', () => {
+    // 1. Preparamos el carrito explícitamente con un producto de prueba
+    localStorage.setItem('chic_carrito', JSON.stringify([{ codigo: 'CH-001', cantidad: 1 }])); //Esta linea genera que el carrito comience con un objeto impidiendo que caiga en el else dando una especie de falso positivo
+    
     render(envolver(<Carrito />));
 
-    const totalInicial = screen.queryByTestId('monto-total')?.textContent;
-    const botonAumentar = screen.queryAllByRole('button', { name: /\+/i })[0];
+  // Lee el total real desde el DOM (el data-testid 'monto-total' no existe en Carrito.tsx)
+  const leerTotal = () => screen.getByText(/^Total:/i).textContent ?? '';
+  const totalInicial = leerTotal();
 
-    if (botonAumentar) {
-      fireEvent.click(botonAumentar);
-      const totalActualizado = screen.queryByTestId('monto-total')?.textContent;
-      
-      // Verifica la actualización del estado del total a último momento
-      expect(totalActualizado).not.toBe(totalInicial);
-    } else {
-      expect(screen.getByText(/Tu carrito está vacío/i)).toBeInTheDocument();
-    }
-  });
+  // 3. Simulamos el clic en el botón +
+  fireEvent.click(screen.getByRole('button', { name: '+' }));
+
+  // 4. Leemos el total actualizado
+  const totalActualizado = leerTotal();
+
+  // Verifica la actualización del estado del total
+  expect(totalActualizado).not.toBe(totalInicial);
+
+});
 
   // 4. PRUEBA DE EVENTO (onChange)
   test('Prueba de evento onChange: captura cambios de cantidad directamente en inputs', () => {
