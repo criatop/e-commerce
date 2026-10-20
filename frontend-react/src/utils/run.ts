@@ -2,6 +2,15 @@ export function limpiarRun(run: string):
 string { return run.replace(/[.\-\s]/g, "").toUpperCase();
 
 }
+
+export function formatearRun(run: string): string {
+  const limpio = limpiarRun(run);
+  if (limpio.length < 2) return limpio;
+  const cuerpo = limpio.slice(0, -1);
+  const dv = limpio.slice(-1);
+  const conPuntos = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${conPuntos}-${dv}`;
+}
 export function validarRun(run: string): boolean {
  const limpio = limpiarRun(run); 
  if (!/^[0-9]{7,8}[0-9K]$/.test(limpio)) return false;
