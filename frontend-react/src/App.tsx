@@ -15,11 +15,11 @@ import Nosotros from "./pages/Nosotros";
 import Blog from "./pages/Blog";
 import BlogDetalle from "./pages/BlogDetalle";
 import Contacto from "./pages/Contacto";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProductos from "./pages/admin/AdminProductos";
-import AdminProductoForm from "./pages/admin/AdminProductoForm";
-import AdminUsuarios from "./pages/admin/AdminUsuarios";
-import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminProductos from "./components/admin/AdminProductos";
+import AdminProductoForm from "./components/admin/AdminProductoForm";
+import AdminUsuarios from "./components/admin/AdminUsuarios";
+import AdminUsuarioForm from "./components/admin/AdminUsuarioForm";
 
 export default function App() {
   return (
