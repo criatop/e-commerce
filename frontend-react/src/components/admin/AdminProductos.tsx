@@ -37,8 +37,23 @@ export default function AdminProductos() {
       clave: "imagen",
       titulo: "Imagen",
       render: (p) => (
-        <div className="thumb-producto-admin">
-          <ImagenProducto imagen={p.imagen} alt={p.nombre} />
+        <div 
+          className="thumb-producto-admin"
+          style={{ 
+            width: "48px", 
+            height: "48px", 
+            borderRadius: "8px", 
+            overflow: "hidden", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center" 
+          }}
+        >
+          <ImagenProducto 
+            imagen={p.imagen} 
+            alt={p.nombre} 
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+          />
         </div>
       ),
     },
@@ -122,7 +137,7 @@ export default function AdminProductos() {
             filas={productos}
             columnas={columnas}
             claveFila={(p) => p.codigo}
-            coincide={(p, texto) => p.nombre.toLowerCase().includes(texto)}
+            coincide={(p, texto) => p.nombre.toLowerCase().includes(texto.toLowerCase())}
             placeholderBusqueda="Buscar producto por nombre..."
             porPagina={5}
             textoVacio="No se encontraron productos."
