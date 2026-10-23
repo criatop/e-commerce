@@ -45,4 +45,5 @@ export interface Orden {
     entrega: { nombre: string; direccion: string; region: string; comuna: string; telefono: string };
     total: number;
     estado: string;
+    usuario?: { run: string; correo: string; nombre: string; apellidos?: string };
 }

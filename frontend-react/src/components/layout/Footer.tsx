@@ -37,7 +37,7 @@ export default function Footer() {
                     <p>+56 9 1234 5678</p>
 
                     <div className="footer-socials">
-                        <a href="#" aria-label="Instagram"><i className="bi bi-instagram" /></a>
+                        <a href="https://www.instagram.com/pinkandpink16/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="bi bi-instagram" /></a>
                         <a href="#" aria-label="Facebook"><i className="bi bi-facebook" /></a>
                         <a href="#" aria-label="TikTok"><i className="bi bi-tiktok" /></a>
                         <a href="#" aria-label="WhatsApp"><i className="bi bi-whatsapp" /></a>

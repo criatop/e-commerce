@@ -60,6 +60,18 @@ export default function AdminProductoForm() {
     if (errores[campo]) setErrores((previos) => ({ ...previos, [campo]: false }));
   }
 
+  function subirImagen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        escribir("imagen", reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   function validar(): boolean {
     const nuevos: Partial<Record<keyof typeof VACIO, boolean>> = {};
 
@@ -242,21 +254,26 @@ export default function AdminProductoForm() {
 
                 <div className="col-12">
                   <label htmlFor="imagenProducto" className="form-label fw-bold">
-                    Ruta de imagen
+                    Imagen del producto
                   </label>
                   <input
                     type="text"
-                    className={"form-control" + (errores.imagen ? " is-invalid" : "")}
+                    className={"form-control mb-2" + (errores.imagen ? " is-invalid" : "")}
                     id="imagenProducto"
-                    placeholder="productos/collar-rose.jpg"
+                    placeholder="productos/collar-rose.jpg o data:image/..."
                     value={form.imagen}
                     onChange={(e) => escribir("imagen", e.target.value)}
                   />
+                  <input type="file" className="form-control" accept="image/*" onChange={subirImagen} />
                   <div className="invalid-feedback">{errores.imagen ? MENSAJES.imagen : ""}</div>
                   <div className="form-text">
-                    Debe coincidir con un archivo de <code>public/img/</code>, por ejemplo{" "}
-                    <code>productos/aros1.jpg</code>.
+                    Puedes escribir la ruta (ej. <code>productos/aros1.jpg</code>) o <b>subir una imagen desde tu escritorio</b> (se guarda en el producto).
                   </div>
+                  {form.imagen && (
+                    <div className="mt-2 text-center">
+                      <img src={form.imagen} alt="Vista previa" style={{ maxHeight: "150px", maxWidth: "100%", objectFit: "contain" }} />
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-12">
