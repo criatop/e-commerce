@@ -292,7 +292,10 @@ export default function Carrito() {
                                 className="btn btn-accent"
                                 onClick={() => {
                                     const folio = confirmarPedido(entrega, envio, pago);
-                                    if (folio) setAbierto(false);
+                                    if (folio) {
+                                        setAbierto(false);
+                                        window.location.href = `/compra-exitosa?folio=${encodeURIComponent(folio)}`;
+                                    }
                                 }}
                             >
                                 Confirmar pedido

@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="row g-4 mb-5">
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-4">
           <div className="card h-100 border-0 card-admin p-3">
             <div className="card-body d-flex flex-column justify-content-between">
               <div>
@@ -49,7 +49,28 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-4">
+          <div className="card h-100 border-0 card-admin p-3">
+            <div className="card-body d-flex flex-column justify-content-between">
+              <div>
+                <div className="d-flex align-items-center mb-3">
+                  <i className="bi bi-tags display-5 icon-admin me-3" />
+                  <h3 className="h4 card-title fw-bold mb-0">Categorías</h3>
+                </div>
+                <p className="card-text text-muted">
+                  Agrega, edita o elimina categorías (Aros, Collares, Tobilleras, etc.).
+                </p>
+              </div>
+              <div className="mt-3">
+                <Link to="/admin/categorias" className="btn btn-admin w-100">
+                  Ver Categorías
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-12 col-md-4">
           <div className="card h-100 border-0 card-admin p-3">
             <div className="card-body d-flex flex-column justify-content-between">
               <div>
@@ -65,6 +86,27 @@ export default function AdminDashboard() {
               <div className="mt-3">
                 <Link to="/admin/usuarios" className="btn btn-admin w-100">
                   Ver Usuarios
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-12 col-md-6">
+          <div className="card h-100 border-0 card-admin p-3">
+            <div className="card-body d-flex flex-column justify-content-between">
+              <div>
+                <div className="d-flex align-items-center mb-3">
+                  <i className="bi bi-receipt display-5 icon-admin me-3" />
+                  <h3 className="h4 card-title fw-bold mb-0">Órdenes / Boletas / Reportes</h3>
+                </div>
+                <p className="card-text text-muted">
+                  Visualiza todo lo vendido, boletas, estado de pedidos e indicadores de ventas.
+                </p>
+              </div>
+              <div className="mt-3">
+                <Link to="/admin/ordenes" className="btn btn-admin w-100">
+                  Ver Órdenes y Reportes
                 </Link>
               </div>
             </div>

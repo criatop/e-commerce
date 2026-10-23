@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import TarjetaProducto from "../components/common/TarjetaProducto";
 import { CHIC_KEYS } from "../storage/claves";
 import { useColeccion } from "../storage/useColeccion";
+import { formatearPrecio } from "../utils/formato";
 import type { Producto } from "../types";
 const SLIDES = [
     {
@@ -226,7 +227,7 @@ export default function Home() {
                             <div className="label">{c.label}</div>
                         </Link>
                     ))}
-                    <Link to="/productos" className="collection-card sale">
+                    <Link to="/productos?oferta=1" className="collection-card sale">
                         <div className="label">SALE</div>
                     </Link>
                 </div>

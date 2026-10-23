@@ -144,6 +144,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const ordenes = JSON.parse(localStorage.getItem(CHIC_KEYS.ordenes) ?? "[]") as Orden[];
     const folio = "PP-" + String(ordenes.length + 1).padStart(4, "0");
 
+    let sesionObj: unknown = null;
+    try { sesionObj = JSON.parse(localStorage.getItem(CHIC_KEYS.sesion) ?? "null"); } catch { /* ignore */ }
+    const s = (sesionObj && typeof sesionObj === "object") ? (sesionObj as Record<string, unknown>) : null;
+
     const pedido: Orden = {
       folio,
       fecha: new Date().toISOString(),
@@ -160,6 +164,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       },
       total: total + envioCosto,
       estado: "Pendiente",
+      usuario: s ? { run: String(s.run ?? ""), correo: String(s.correo ?? ""), nombre: String(s.nombre ?? ""), apellidos: String(s.apellidos ?? "") } : undefined,
     };
 
     ordenes.push(pedido);

@@ -70,6 +70,14 @@ export default function Cuenta() {
                     {rol?.nombre ?? "Usuario"}
                   </span>
 
+                  {!esPersonal && (
+                    <div className="mt-3">
+                      <Link to="/mis-compras" className="btn btn-accent w-100">
+                        <i className="bi bi-receipt me-1" /> Mis compras / Boletas
+                      </Link>
+                    </div>
+                  )}
+
                   {esPersonal && (
                     <div className="mt-3">
                       <Link to="/admin" className="btn btn-accent w-100">
