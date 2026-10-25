@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { CartProvider, useCart, type DatosEntrega } from "./CartContext";
 import { CHIC_KEYS } from "../storage/claves";
 import { alertas } from "../utils/alerta";
@@ -39,10 +40,10 @@ describe("CartContext", () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem(CHIC_KEYS.productos, JSON.stringify([producto()]));
-    spyOn(alertas, "exito").and.returnValue(Promise.resolve() as never);
-    spyOn(alertas, "aviso").and.returnValue(Promise.resolve() as never);
-    spyOn(alertas, "exitoHtml").and.returnValue(Promise.resolve() as never);
-    spyOn(alertas, "confirmar").and.returnValue(Promise.resolve(true) as never);
+    vi.spyOn(alertas, "exito").mockResolvedValue(undefined as never);
+    vi.spyOn(alertas, "aviso").mockResolvedValue(undefined as never);
+    vi.spyOn(alertas, "exitoHtml").mockResolvedValue(undefined as never);
+    vi.spyOn(alertas, "confirmar").mockResolvedValue(true as never);
   });
 
   it("agregar mete un producto nuevo", () => {
@@ -147,7 +148,7 @@ describe("CartContext", () => {
   });
 
   it("vaciar conserva el carrito cuando se cancela", async () => {
-    (alertas.confirmar as jasmine.Spy).and.returnValue(Promise.resolve(false));
+    vi.spyOn(alertas, "confirmar").mockResolvedValue(false as never);
     const { result } = renderHook(() => useCart(), { wrapper });
     act(() => {
       result.current.agregar("P1");
@@ -210,7 +211,7 @@ describe("CartContext", () => {
       );
     });
     expect(folio).toBe("PP-0001");
-    const orden = leerOrdenes()[0] as {
+    const orden = leerOrdenes()[0] as unknown as {
       entrega: { direccion: string };
       envio: { costo: number };
     };

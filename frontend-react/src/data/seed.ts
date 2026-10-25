@@ -259,30 +259,38 @@ const PRODUCTOS: Producto[] = [
 ];
 
 const NOTICIAS: Noticia[] = [
-{
-id: 1,
-titulo: "Guía de Tendencias: Accesorios de Primavera",
-resumen: "Conoce los tonos y materiales que marcarán la temporada. Desde piezas minimalistas hasta combinaciones audaces.",
-imagen: "blog/tendencias.svg",
-fecha: "2026-08-01",
-slug: "detalle-1",
-categoria: "Tendencias",
-autor: "Equipo Pink & Pink",
-parrafos: ["La primavera trae consigo colores vibrantes, texturas ligeras y combinaciones audaces que transforman cualquier atuendo básico en una declaración de estilo.",
-"En esta temporada, la tendencia principal se centra en el contraste entre acabados dorados y tonos pastel como el rosa suave y el lavanda. Los aros grandes y los collares en capas son los accesorios indispensables que no pueden faltar en tu colección.", ],
-},
-{
-id: 2,
-titulo: "Cómo Cuidar tus Joyas para que Cuenten Historias",
-resumen: "Consejos prácticos para limpiar y almacenar tus accesorios favoritos evitando el desgaste del día a día.",
-imagen: "blog/cuidado.svg",
-fecha: "2026-08-10",
-slug: "detalle-2",
-categoria: "Tips & Cuidado",
-autor: "Equipo Pink & Pink",
-parrafos: [ "Mantener el brillo original de tus accesorios favoritos es más fácil de lo que parece con una rutina básica de cuidados.",
-"Te recomendamos evitar el contacto directo con perfumes, cremas o agua de mar. Al finalizar el día, guarda cada pieza por separado en un lugar seco utilizando bolsas de tela o joyeros para evitar ralladuras y mantener su acabado impecable por mucho más tiempo.",],
-},
+  {
+    id: 1,
+    titulo: "Guía de Tendencias: Accesorios de Primavera",
+    resumen: "Conoce los tonos y materiales que marcarán la temporada. Desde piezas minimalistas hasta combinaciones audaces.",
+    imagen: "https://i.pinimg.com/736x/2b/ac/61/2bac61c55d72899ee7a502918a64f661.jpg",
+    fecha: "2026-08-01",
+    slug: "detalle-1",
+    categoria: "Tendencias",
+    autor: "Equipo Pink & Pink",
+    parrafos: [
+      "La primavera marca el momento ideal para renovar nuestro estilo y abrazar combinaciones de accesorios llenas de frescura y luz. Esta temporada, la joyería deja de ser un complemento secundario para convertirse en el punto focal de cada outfit, destacando la superposición de capas y la mezcla de texturas.",
+      "El 'layering' o la tendencia de llevar múltiples capas continúa liderando las preferencias. La clave esta temporada está en combinar gargantillas estructuradas con cadenas finas de diferentes alturas y delicados dijes que aporten movimiento. No le temas a contrastar acabados lisos con detalles en circonias o cristales brillantes.",
+      "En cuanto a paletas de color, los tonos dorados cálidos encabezan las listas, transmitiendo la calidez de los días soleados. Sin embargo, los destellos plateados y las piezas con toques en tonos pastel —como cuarzo rosa, verde menta y azul cielo— se consolidan como los favoritos para elevar looks casuales e informales.",
+      "Para lograr el equilibrio perfecto sin recargar tu imagen, te sugerimos focalizar la atención: si vas a lucir un escote llamativo con un conjunto de collares recargado, opta por aros pequeños de tipo 'huggie' o 'studs'. Así mantendrás un contraste armonioso, sofisticado y sumamente chic."
+    ],
+  },
+  {
+    id: 2,
+    titulo: "Cómo Cuidar tus Joyas para que Cuenten Historias",
+    resumen: "Consejos prácticos para limpiar y almacenar tus accesorios favoritos evitando el desgaste del día a día.",
+    imagen: "https://i.pinimg.com/1200x/eb/f0/bb/ebf0bb7abc570a437239de7bef26352d.jpg",
+    fecha: "2026-08-10",
+    slug: "detalle-2",
+    categoria: "Tips & Cuidado",
+    autor: "Equipo Pink & Pink",
+    parrafos: [
+      "Nuestras joyas no solo son accesorios estéticos, también guardan recuerdos, momentos especiales y nuestra propia esencia. Para asegurar que tus piezas favoritas mantengan su brillo original y permanezcan como nuevas a lo largo de los años, es fundamental brindarles una rutina de cuidado y conservación adecuada.",
+      "El peor enemigo del brillo en la bisutería fina y las joyas es la humedad junto con los químicos cotidianos. Recomendamos aplicar perfume, lociones corporales, fijadores de cabello y maquillaje antes de colocar tus accesorios. De esta forma, evitarás que la capa protectora del metal sufra reacciones químicas que alteren su acabado.",
+      "El almacenamiento correcto marca una diferencia enorme. En lugar de guardar todas tus piezas juntas en un mismo recipiente —lo que provoca fricción y rayaduras entre metales—, procura organizarlas de manera individual en bolsas de tela suave o compartimentos acolchados. Esto previene también los molestos nudos en las cadenas finas.",
+      "Por último, para su limpieza habitual, simplemente utiliza un paño de microfibra seco y limpio tras cada uso. Esto eliminará cualquier resto de grasitud o sudor acumulado durante el día, garantizando que tus aros, pulseras y collares conserven su resplandor y belleza intactos por mucho más tiempo."
+    ],
+  },
 ];
 
 export function inicializarDatos() {

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import TarjetaProducto from "./TarjetaProducto";
 import { CartProvider } from "../../context/CartContext";
 import { CHIC_KEYS } from "../../storage/claves";
@@ -33,14 +34,14 @@ describe("TarjetaProducto", () => {
       CHIC_KEYS.categorias,
       JSON.stringify([{ id: 1, nombre: "Collares", descripcion: "" }]),
     );
-    spyOn(alertas, "exito").and.returnValue(Promise.resolve() as never);
+    vi.spyOn(alertas, "exito").mockResolvedValue(undefined as never);
   });
 
   it("muestra el nombre, el precio formateado y la categoría", () => {
     render(<TarjetaProducto producto={producto} />, { wrapper });
-    expect(screen.getByText("Collar Rosa")).toBeTruthy();
-    expect(screen.getByText("$12.000")).toBeTruthy();
-    expect(screen.getByText("Collares")).toBeTruthy();
+    expect(screen.getByText("Collar Rosa")).toBeInTheDocument();
+    expect(screen.getByText("$12.000")).toBeInTheDocument();
+    expect(screen.getByText("Collares")).toBeInTheDocument();
   });
 
   it("enlaza al detalle del producto con su código", () => {

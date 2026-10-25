@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import TarjetaProducto from "../components/common/TarjetaProducto";
 import { CHIC_KEYS } from "../storage/claves";
 import { useColeccion } from "../storage/useColeccion";
-import { formatearPrecio } from "../utils/formato";
 import type { Producto } from "../types";
+
 const SLIDES = [
     {
         h1: "ACCESORIOS QUE",
@@ -22,12 +22,14 @@ const SLIDES = [
         p: "Encuentra el accesorio perfecto para cada ocasión. Envíos a todo Chile y calidad garantizada.",
     },
 ];
+
 const COLECCIONES = [
     { id: 1, label: "COLLARES", glifo: "corazon" },
     { id: 2, label: "PULSERAS", glifo: "anillo" },
     { id: 3, label: "AROS", glifo: "aros" },
     { id: 5, label: "ACCESORIOS", glifo: "cuadro" },
 ];
+
 function Glifo({ tipo }: { tipo: string }) {
     if (tipo === "anillo") {
         return (
@@ -45,6 +47,7 @@ function Glifo({ tipo }: { tipo: string }) {
             </svg>
         );
     }
+
     if (tipo === "cuadro") {
         return (
             <svg viewBox="0 0 24 24">
@@ -52,36 +55,30 @@ function Glifo({ tipo }: { tipo: string }) {
             </svg>
         );
     }
+
     return (
         <svg viewBox="0 0 24 24">
-            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15
-16.65 12 21 12 21z" />
+            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z" />
         </svg>
     );
 }
+
 export default function Home() {
     const [indice, setIndice] = useState(0);
     const { datos: productos } = useColeccion<Producto>(CHIC_KEYS.productos);
+
     useEffect(() => {
         const temporizador = setInterval(() => {
             setIndice((actual) => (actual + 1) % SLIDES.length);
         }, 4500);
         return () => clearInterval(temporizador);
     }, []);
+
     const slide = SLIDES[indice];
+
     return (
         <>
             <section className="hero">
-                <button
-                    type="button"
-                    className="hero-arrow left"
-                    onClick={() => setIndice((i) => (i - 1 + SLIDES.length) % SLIDES.length)}
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-
-                        <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                </button>
                 <div className="hero-text">
                     <h1>{slide.h1}</h1>
                     <span className="script">
@@ -91,21 +88,28 @@ export default function Home() {
                     <Link to="/productos" className="btn-cta">
                         VER COLECCIÓN
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5
-
-3.5 7.5C15 16.65 12 21 12 21z" />
-
+                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z" />
                         </svg>
                     </Link>
                 </div>
-                <div className="hero-visual">
+
+                <div className="hero-visual" style={{ position: "relative" }}>
+                    {/* 1. AGREGA ESTE BOTÓN AQUÍ (FLECHA IZQUIERDA) */}
+                    <button
+                        type="button"
+                        className="hero-arrow left"
+                        style={{ left: "15px", position: "absolute", zIndex: 20 }}
+                        onClick={() => setIndice((i) => (i - 1 + SLIDES.length) % SLIDES.length)}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                    </button>
+
                     <div className="swatch" />
                     <div className="piece pendant">
                         <svg viewBox="0 0 24 24">
-                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5
-
-3.5 7.5C15 16.65 12 21 12 21z" />
-
+                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z" />
                         </svg>
                     </div>
                     <div className="piece ring">
@@ -125,12 +129,10 @@ export default function Home() {
                     </div>
                     <div className="piece studs">
                         <svg viewBox="0 0 24 24">
-                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5
-
-3.5 7.5C15 16.65 12 21 12 21z" />
-
+                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z" />
                         </svg>
                     </div>
+
                     <div className="hero-dots">
                         {SLIDES.map((_, i) => (
                             <span
@@ -140,17 +142,20 @@ export default function Home() {
                             />
                         ))}
                     </div>
+
+                    <button
+                        type="button"
+                        className="hero-arrow right"
+                        style={{ right: "15px", position: "absolute", zIndex: 20 }}
+                        onClick={() => setIndice((i) => (i + 1) % SLIDES.length)}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                    </button>
                 </div>
-                <button
-                    type="button"
-                    className="hero-arrow right"
-                    onClick={() => setIndice((i) => (i + 1) % SLIDES.length)}
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                        <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                </button>
             </section>
+
             <section className="features">
                 <div className="feature">
                     <div className="icon">
@@ -170,7 +175,6 @@ export default function Home() {
                     <div className="icon">
                         <svg viewBox="0 0 24 24">
                             <rect x="2" y="5" width="20" height="14" rx="2" />
-
                             <line x1="2" y1="10" x2="22" y2="10" />
                         </svg>
                     </div>
@@ -194,10 +198,7 @@ export default function Home() {
                 <div className="feature">
                     <div className="icon">
                         <svg viewBox="0 0 24 24">
-                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5
-
-3.5 7.5C15 16.65 12 21 12 21z" />
-
+                            <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2.5 5 6 5c2 0 3.5 1 4 2.5C10.5 6 12 5 14 5c3.5 0 5.5 3.5 3.5 7.5C15 16.65 12 21 12 21z" />
                         </svg>
                     </div>
                     <div>
@@ -206,6 +207,7 @@ export default function Home() {
                     </div>
                 </div>
             </section>
+
             <section className="collections">
                 <Link to="/productos" className="view-all">
                     VER TODAS
@@ -215,7 +217,6 @@ export default function Home() {
                 </Link>
                 <div className="heading">
                     <h2>COLECCIONES DESTACADAS</h2>
-
                 </div>
                 <div className="heart">♥</div>
                 <div className="collection-grid">
@@ -232,6 +233,7 @@ export default function Home() {
                     </Link>
                 </div>
             </section>
+
             <section className="container-section">
                 <h1 className="section-title">Productos destacados</h1>
                 <div className="row g-4">
@@ -240,11 +242,11 @@ export default function Home() {
                     ))}
                 </div>
             </section>
+
             <section className="container-section text-center py-5">
                 <h2 className="section-title mb-3">Blog &amp; Novedades</h2>
                 <p className="text-muted mb-4">
-                    Descubre las últimas tendencias, tips de cuidado y consejos de estilo que tenemos
-                    para ti.
+                    Descubre las últimas tendencias, tips de cuidado y consejos de estilo que tenemos para ti.
                 </p>
                 <Link to="/blog" className="btn btn-contacto px-5 py-3 fw-semibold rounded-pill shadow-sm">
                     <i className="bi bi-journal-text me-2" /> VER NOVEDADES

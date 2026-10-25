@@ -13,6 +13,7 @@ interface AuthContextValue {
   esPersonal: boolean;
   login: (correo: string, password: string) => MotivoFallo | null;
   logout: () => void;
+  actualizarSesion: (nuevosDatos: Sesion) => void;
   destinoTrasLogin: () => string;
 }
 
@@ -59,9 +60,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSesion(null);
   }
 
-  /* Se lee la sesión recién guardada en localStorage, no el estado de React:
-     durante el mismo clic en que login() guarda la sesión, `sesion` todavía
-     vale null en esta misma función. */
+  function actualizarSesion(nuevosDatos: Sesion) {
+    // 1. Actualizar en el estado local de sesión y en localStorage
+    setSesion(nuevosDatos);
+    localStorage.setItem(CHIC_KEYS.sesion, JSON.stringify(nuevosDatos));
+
+    // 2. Actualizar también dentro de la lista completa de usuarios
+    const usuarios = JSON.parse(localStorage.getItem(CHIC_KEYS.usuarios) ?? "[]") as Usuario[];
+    const usuariosActualizados = usuarios.map((u) => {
+      if (u.run === nuevosDatos.run) {
+        return {
+          ...u,
+          nombre: nuevosDatos.nombre,
+          apellidos: nuevosDatos.apellidos,
+          correo: nuevosDatos.correo,
+          fechaNacimiento: nuevosDatos.fechaNacimiento,
+          regionId: nuevosDatos.regionId,
+          comunaId: nuevosDatos.comunaId,
+          direccion: nuevosDatos.direccion,
+        };
+      }
+      return u;
+    });
+
+    localStorage.setItem(CHIC_KEYS.usuarios, JSON.stringify(usuariosActualizados));
+  }
+
   function destinoTrasLogin(): string {
     const actual = leerSesion();
     if (!actual) return "/cuenta";
@@ -88,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     esPersonal: sesion?.rolId === 1 || sesion?.rolId === 2,
     login,
     logout,
+    actualizarSesion,
     destinoTrasLogin,
   };
 

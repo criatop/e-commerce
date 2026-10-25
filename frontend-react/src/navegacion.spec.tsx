@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { AppRoutes } from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -21,28 +22,28 @@ function renderRuta(ruta: string) {
 describe("navegación de la aplicación", () => {
   beforeEach(() => {
     localStorage.clear();
-    spyOn(alertas, "accesoRestringido").and.returnValue(
+    vi.spyOn(alertas, "accesoRestringido").mockResolvedValue(
       Promise.resolve() as never,
     );
   });
 
   it("renderiza el inicio en /", () => {
     renderRuta("/");
-    expect(screen.getByText("Productos destacados")).toBeTruthy();
+    expect(screen.getByText("Productos destacados")).toBeInTheDocument();
   });
 
   it("renderiza Nosotros en /nosotros", () => {
     renderRuta("/nosotros");
     expect(
       screen.getByRole("heading", { name: "Sobre Nosotros" }),
-    ).toBeTruthy();
+    ).toBeInTheDocument();
   });
 
   it("renderiza el Login en /login", () => {
     renderRuta("/login");
     expect(
       screen.getByRole("heading", { name: "Iniciar sesión" }),
-    ).toBeTruthy();
+    ).toBeInTheDocument();
   });
 
   it("navega al hacer clic en un enlace del menú", () => {
@@ -50,14 +51,14 @@ describe("navegación de la aplicación", () => {
     fireEvent.click(screen.getByRole("link", { name: "NOSOTROS" }));
     expect(
       screen.getByRole("heading", { name: "Sobre Nosotros" }),
-    ).toBeTruthy();
+    ).toBeInTheDocument();
   });
 
   it("protege /cuenta y redirige al login sin sesión", () => {
     renderRuta("/cuenta");
     expect(
       screen.getByRole("heading", { name: "Iniciar sesión" }),
-    ).toBeTruthy();
+    ).toBeInTheDocument();
     expect(screen.queryByText("Aún no has iniciado sesión")).toBeNull();
     expect(alertas.accesoRestringido).toHaveBeenCalled();
   });
@@ -79,7 +80,7 @@ describe("navegación de la aplicación", () => {
       }),
     );
     renderRuta("/cuenta");
-    expect(screen.getByRole("heading", { name: "Mi cuenta" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Mi cuenta" })).toBeInTheDocument();
     expect(alertas.accesoRestringido).not.toHaveBeenCalled();
   });
 
@@ -89,7 +90,7 @@ describe("navegación de la aplicación", () => {
       JSON.stringify({ nombre: "Jefe", apellidos: "Uno", rolId: 1 }),
     );
     renderRuta("/admin");
-    expect(screen.getByRole("link", { name: /Resumen/ })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Resumen/ })).toBeInTheDocument();
     expect(alertas.accesoRestringido).not.toHaveBeenCalled();
   });
 });
