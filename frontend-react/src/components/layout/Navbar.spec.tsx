@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
+import type { ReactNode } from "react";
+import { describe, it, expect, beforeEach } from "vitest";
 import Navbar from "./Navbar";
 import { AuthProvider } from "../../context/AuthContext";
 import { CartProvider } from "../../context/CartContext";
@@ -30,11 +32,11 @@ describe("Navbar", () => {
 
   it("muestra el buscador y los enlaces de navegación", () => {
     renderNavbar();
-    expect(screen.getByPlaceholderText("Buscar accesorios ...")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "INICIO" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "NOSOTROS" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "CONTACTO" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Carrito" })).toBeTruthy();
+    expect(screen.getByPlaceholderText("Buscar accesorios ...")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "INICIO" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "NOSOTROS" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "CONTACTO" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Carrito" })).toBeInTheDocument();
   });
 
   it("navega a /productos con el texto buscado", () => {

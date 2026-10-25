@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { limpiarRun, validarRun } from "./run";
 
 describe("limpiarRun", () => {
@@ -12,20 +13,20 @@ describe("limpiarRun", () => {
 
 describe("validarRun", () => {
   it("acepta un run de 8 dígitos válido", () => {
-    expect(validarRun("11.111.111-1")).toBeTrue();
-    expect(validarRun("12345678-5")).toBeTrue();
+    expect(validarRun("11.111.111-1")).toBe(true);
+    expect(validarRun("12345678-5")).toBe(true);
   });
 
   it("acepta un run de 7 dígitos con dígito K", () => {
-    expect(validarRun("1000005-K")).toBeTrue();
+    expect(validarRun("1000005-K")).toBe(true);
   });
 
   it("rechaza un dígito verificador incorrecto", () => {
-    expect(validarRun("12345678-9")).toBeFalse();
+    expect(validarRun("12345678-9")).toBe(false);
   });
 
   it("rechaza un formato inválido", () => {
-    expect(validarRun("abc")).toBeFalse();
-    expect(validarRun("123")).toBeFalse();
+    expect(validarRun("abc")).toBe(false);
+    expect(validarRun("123")).toBe(false);
   });
 });

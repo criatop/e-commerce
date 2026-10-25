@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { useTablasMaestras } from "./useTablasMaestras";
 import { CHIC_KEYS } from "../storage/claves";
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe("useTablasMaestras", () => {
   beforeEach(() => {

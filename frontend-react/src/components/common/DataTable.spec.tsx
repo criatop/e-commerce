@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import DataTable, { type Columna } from "./DataTable";
 
 interface Fila {
@@ -77,13 +78,13 @@ describe("DataTable", () => {
     fireEvent.change(screen.getByPlaceholderText("Buscar..."), {
       target: { value: "zzz" },
     });
-    expect(screen.getByText("Sin resultados")).toBeTruthy();
+    expect(screen.getByText("Sin resultados")).toBeInTheDocument();
   });
 
   it("pagina los resultados de a porPagina", () => {
     renderTabla({ porPagina: 2 });
     expect(nombreDeFilas()).toEqual(["Collar", "Aros"]);
-    expect(screen.getByText(/de 3/)).toBeTruthy();
+    expect(screen.getByText(/de 3/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
     expect(nombreDeFilas()).toEqual(["Pulsera"]);

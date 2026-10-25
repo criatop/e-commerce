@@ -37,8 +37,25 @@ export default function AdminProductos() {
       clave: "imagen",
       titulo: "Imagen",
       render: (p) => (
-        <div className="thumb-producto-admin">
-          <ImagenProducto imagen={p.imagen} alt={p.nombre} />
+        <div
+          className="thumb-producto-admin"
+          style={{
+            width: "50px",
+            height: "50px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ImagenProducto
+            imagen={p.imagen}
+            alt={p.nombre}
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+            }}
+          />
         </div>
       ),
     },

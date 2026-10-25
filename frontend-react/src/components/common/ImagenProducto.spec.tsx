@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import ImagenProducto from "./ImagenProducto";
+import { describe, expect, it } from "vitest";
 
 describe("ImagenProducto", () => {
   it("antepone /img/ cuando la imagen es relativa", () => {

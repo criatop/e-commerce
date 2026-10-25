@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from "vitest";
 import { inicializarDatos } from "./seed";
 import { CHIC_KEYS, CHIC_VERSION } from "../storage/claves";
 

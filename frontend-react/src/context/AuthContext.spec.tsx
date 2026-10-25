@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { CHIC_KEYS } from "../storage/claves";
+import { beforeEach, describe, it, expect } from "vitest"; // ✅ Agregados 'it' y 'expect'
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <AuthProvider>{children}</AuthProvider>
@@ -46,7 +47,8 @@ describe("AuthContext", () => {
     });
     expect(motivo).toBeNull();
     expect(result.current.sesion?.correo).toBe("ana@test.cl");
-    expect((result.current.sesion as Record<string, unknown>).password).toBeUndefined();
+    // Opción recomendada (pasando por unknown):
+    expect((result.current.sesion as unknown as Record<string, unknown>).password).toBeUndefined();
     expect(localStorage.getItem(CHIC_KEYS.sesion)).toContain("ana@test.cl");
   });
 
@@ -104,9 +106,11 @@ describe("AuthContext", () => {
     });
     expect(result.current.iniciales).toBe("AP");
     expect(result.current.nombreRol).toBe("Admin");
-    expect(result.current.esAdmin).toBeTrue();
-    expect(result.current.esPersonal).toBeTrue();
-    expect(result.current.esVendedor).toBeFalse();
+
+    // ✅ Reemplazados .toBeTrue() y .toBeFalse() por .toBe(true) y .toBe(false)
+    expect(result.current.esAdmin).toBe(true);
+    expect(result.current.esPersonal).toBe(true);
+    expect(result.current.esVendedor).toBe(false);
   });
 
   it("destinoTrasLogin manda a /admin el personal y a /cuenta el cliente", () => {
