@@ -32,18 +32,8 @@ public class DefaultSecurityConfig {
                         // Catálogo público: ver productos
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/v1/products/**").permitAll()
 
-                        // Guest checkout: armar carrito y pagar sin sesión
-                        .requestMatchers(HttpMethod.POST, "/api/cart/**", "/api/v1/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/cart/**", "/api/v1/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/cart/**", "/api/v1/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/**", "/api/v1/orders/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/**", "/api/v1/payments/**").permitAll()
-
-                        // Integración interna entre servicios (Feign, sin token de usuario):
-                        // ms-payment -> ms-order (PAID)
-                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/status", "/api/v1/orders/*/status").permitAll()
-
-                        // Resto (lecturas de historial, management) requiere token
+                        // Resto (carrito, checkout, historial, management) requiere token:
+                        // el checkout exige sesión, no hay invitados
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider),
