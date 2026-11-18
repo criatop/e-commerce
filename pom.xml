@@ -17,14 +17,11 @@
         <module>api-gateway</module>
         <module>ms-auth</module>
         <module>ms-product</module>
-        <module>ms-inventory</module>
         <module>ms-cart</module>
         <module>ms-order</module>
         <module>ms-payment</module>
         <module>ms-shipping</module>
-        <module>ms-notification</module>
-        <module>ms-review</module>
-        <module>ms-analytics</module>
+        <module>ms-content</module>
     </modules>
 
     <properties>
@@ -41,6 +38,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <jakarta.el.version>4.0.2</jakarta.el.version>
+        <springdoc.version>2.8.6</springdoc.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -104,6 +102,12 @@
                 <groupId>org.glassfish</groupId>
                 <artifactId>jakarta.el</artifactId>
                 <version>${jakarta.el.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
 
             <dependency>

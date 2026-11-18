@@ -27,11 +27,10 @@ public class DefaultSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/actuator/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // Catálogo público: ver productos, reviews e inventario
+                        // Catálogo público: ver productos
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/v1/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/**", "/api/v1/reviews/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/inventory/**", "/api/v1/inventory/**").permitAll()
 
                         // Guest checkout: armar carrito y pagar sin sesión
                         .requestMatchers(HttpMethod.POST, "/api/cart/**", "/api/v1/cart/**").permitAll()
@@ -41,10 +40,7 @@ public class DefaultSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/payments/**", "/api/v1/payments/**").permitAll()
 
                         // Integración interna entre servicios (Feign, sin token de usuario):
-                        // ms-order -> ms-inventory (reserva/consume/release) y ms-payment -> ms-order (PAID)
-                        .requestMatchers(HttpMethod.POST, "/api/inventory/reserve", "/api/v1/inventory/reserve").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/inventory/consume/**", "/api/v1/inventory/consume/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/inventory/release/**", "/api/v1/inventory/release/**").permitAll()
+                        // ms-payment -> ms-order (PAID)
                         .requestMatchers(HttpMethod.PUT, "/api/orders/*/status", "/api/v1/orders/*/status").permitAll()
 
                         // Resto (lecturas de historial, management) requiere token

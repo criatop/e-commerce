@@ -1,8 +1,6 @@
 package cl.ecommerce.order.service;
 
 import cl.ecommerce.common.dto.ApiResponse;
-import cl.ecommerce.common.event.OrderCancelledEvent;
-import cl.ecommerce.common.event.OrderCreatedEvent;
 import cl.ecommerce.common.exception.BusinessException;
 import cl.ecommerce.common.exception.NotFoundException;
 import cl.ecommerce.common.security.SecurityUtils;
@@ -17,11 +15,9 @@ import cl.ecommerce.order.model.OrderStatus;
 import cl.ecommerce.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +31,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
@@ -94,16 +89,6 @@ public class OrderService {
             throw new BusinessException("No se pudo reservar el stock para la orden");
         }
 
-        OrderCreatedEvent event = OrderCreatedEvent.builder()
-                .orderId(savedOrder.getId().toString())
-                .userId(savedOrder.getUserId())
-                .totalAmount(savedOrder.getTotalAmount())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        kafkaTemplate.send("order.created", event);
-        log.info("Evento OrderCreated publicado para orden: {}", savedOrder.getId());
-
         return toResponse(savedOrder);
     }
 
@@ -156,16 +141,6 @@ public class OrderService {
         } catch (Exception e) {
             log.error("Error al liberar stock para orden {}: {}", savedOrder.getId(), e.getMessage());
         }
-
-        OrderCancelledEvent event = OrderCancelledEvent.builder()
-                .orderId(savedOrder.getId().toString())
-                .userId(savedOrder.getUserId())
-                .reason("Cancelada por el usuario")
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        kafkaTemplate.send("order.cancelled", event);
-        log.info("Evento OrderCancelled publicado para orden: {}", savedOrder.getId());
 
         return toResponse(savedOrder);
     }

@@ -1,7 +1,6 @@
 package cl.ecommerce.payment.service;
 
 import cl.ecommerce.common.dto.ApiResponse;
-import cl.ecommerce.common.event.PaymentCompletedEvent;
 import cl.ecommerce.payment.client.OrderClient;
 import cl.ecommerce.payment.dto.PaymentRequest;
 import cl.ecommerce.payment.dto.PaymentResponse;
@@ -11,7 +10,6 @@ import cl.ecommerce.payment.model.PaymentStatus;
 import cl.ecommerce.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,7 +23,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderClient orderClient;
-    private final KafkaTemplate<String, PaymentCompletedEvent> kafkaTemplate;
 
     public PaymentResponse processPayment(PaymentRequest request) {
         Payment payment = Payment.builder()
@@ -40,18 +37,6 @@ public class PaymentService {
 
         payment = paymentRepository.save(payment);
         log.info("Payment processed successfully: {}", payment.getId());
-
-        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-                .paymentId(payment.getId().toString())
-                .orderId(payment.getOrderId())
-                .userId(payment.getUserId())
-                .amount(payment.getAmount())
-                .method(payment.getMethod().name())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        kafkaTemplate.send("payment.completed", event);
-        log.info("PaymentCompletedEvent published to Kafka for payment: {}", payment.getId());
 
         try {
             orderClient.updateOrderStatus(payment.getOrderId(), "PAID");
