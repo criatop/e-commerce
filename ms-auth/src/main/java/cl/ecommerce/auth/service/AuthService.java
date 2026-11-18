@@ -49,7 +49,7 @@ public class AuthService {
 
         User saved = userRepository.save(user);
 
-        String token = jwtTokenProvider.generateToken(saved.getEmail(), saved.getNombre(), saved.getRole().getName());
+        String token = jwtTokenProvider.generateToken(saved.getId(), saved.getEmail(), saved.getNombre(), saved.getRole().getName());
 
         return AuthResponse.builder()
                 .token(token)
@@ -67,7 +67,7 @@ public class AuthService {
             throw new BusinessException("Credenciales inválidas");
         }
 
-        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getNombre(), user.getRole().getName());
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getNombre(), user.getRole().getName());
 
         return AuthResponse.builder()
                 .token(token)
@@ -95,7 +95,7 @@ public class AuthService {
 
         User saved = userRepository.save(user);
 
-        String token = jwtTokenProvider.generateToken(saved.getEmail(), saved.getNombre(), saved.getRole().getName());
+        String token = jwtTokenProvider.generateToken(saved.getId(), saved.getEmail(), saved.getNombre(), saved.getRole().getName());
 
         return AuthResponse.builder()
                 .token(token)

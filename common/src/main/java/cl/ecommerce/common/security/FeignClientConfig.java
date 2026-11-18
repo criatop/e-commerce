@@ -1,10 +1,9 @@
 package cl.ecommerce.common.security;
 
 import feign.RequestInterceptor;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -12,13 +11,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class FeignClientConfig {
 
     @Bean
-    public RequestInterceptor feignRequestInterceptor() {
-        return requestTemplate -> {
-            RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+    public RequestInterceptor jwtPropagation() {
+        return template -> {
+            var attributes = RequestContextHolder.getRequestAttributes();
             if (attributes instanceof ServletRequestAttributes servletAttrs) {
-                String authHeader = servletAttrs.getRequest().getHeader("Authorization");
-                if (authHeader != null) {
-                    requestTemplate.header("Authorization", authHeader);
+                String auth = servletAttrs.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
+                if (auth != null) {
+                    template.header(HttpHeaders.AUTHORIZATION, auth);
                 }
             }
         };
