@@ -11,7 +11,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
@@ -54,6 +56,31 @@ class UserControllerTest {
     }
 
     @Test
+    void comunasWithoutRegionIdReturnApiResponseError() throws Exception {
+        mockMvc.perform(get("/api/v1/comunas"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.exitoso").value(false))
+                .andExpect(jsonPath("$.mensaje").value(containsString("regionId")))
+                .andExpect(jsonPath("$.datos.error").value("BUSINESS_ERROR"))
+                .andExpect(jsonPath("$.datos.codigo").value(400))
+                .andExpect(jsonPath("$.datos.mensaje").value(containsString("regionId")))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void forbiddenResponseUsesApiResponseEnvelope() throws Exception {
+        mockMvc.perform(get("/api/v1/users"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.exitoso").value(false))
+                .andExpect(jsonPath("$.mensaje").value(containsString("permisos")))
+                .andExpect(jsonPath("$.datos.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.datos.codigo").value(403))
+                .andExpect(jsonPath("$.datos.timestamp").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
     @WithMockUser(roles = "CUSTOMER")
     void customerCannotListRoles() throws Exception {
         mockMvc.perform(get("/api/v1/roles"))
@@ -76,6 +103,9 @@ class UserControllerTest {
     @Test
     void meRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.exitoso").value(false))
+                .andExpect(jsonPath("$.mensaje").value("Autenticacion requerida"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 }
