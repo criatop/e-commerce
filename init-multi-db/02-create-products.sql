@@ -14,16 +14,20 @@ CREATE TABLE categories (
 );
 
 CREATE TABLE products (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name        VARCHAR(200) NOT NULL,
-    description TEXT,
-    price       DECIMAL(12,2) NOT NULL CHECK (price >= 0),
-    category_id UUID REFERENCES categories(id),
-    sku         VARCHAR(50) UNIQUE NOT NULL,
-    imagen_url  VARCHAR(500),
-    activo      BOOLEAN DEFAULT TRUE,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name                VARCHAR(200) NOT NULL,
+    description         TEXT,
+    price               DOUBLE PRECISION NOT NULL CHECK (price >= 0),
+    category_id         UUID REFERENCES categories(id),
+    sku                 VARCHAR(50) UNIQUE NOT NULL,
+    imagen_url          VARCHAR(500),
+    activo              BOOLEAN DEFAULT TRUE,
+    stock_quantity      INT NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+    reserved_quantity   INT NOT NULL DEFAULT 0 CHECK (reserved_quantity >= 0),
+    low_stock_threshold INT NOT NULL DEFAULT 5 CHECK (low_stock_threshold >= 0),
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT products_reserved_le_stock CHECK (reserved_quantity <= stock_quantity)
 );
 
 CREATE TABLE product_images (
@@ -43,27 +47,27 @@ INSERT INTO categories (name, description) VALUES
 ('Tobilleras',  'Tobilleras delicadas y con dijes'),
 ('Broches',     'Broches, pasadores y horquillas');
 
-INSERT INTO products (name, description, price, category_id, sku, imagen_url) VALUES
-('Collar Estrella Plateado',       'Collar de plata 925 con dije de estrella',              19990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-001', 'https://img.tienda/collar-estrella.jpg'),
-('Collar Perlas Clásico',          'Collar de perlas cultivadas con cierre dorado',         34990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-002', 'https://img.tienda/collar-perlas.jpg'),
-('Collar Corazón Rosa',            'Collar baño de oro rosa con dije de corazón',           24990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-003', 'https://img.tienda/collar-corazon.jpg'),
-('Aros Aro Dorado Fino',           'Aros circulares baño de oro 18k, pair elegante',        14990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-001', 'https://img.tienda/aros-dorados.jpg'),
-('Aros Cascada Cristal',           'Aros colgantes con cristales Swarovski',                22990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-002', 'https://img.tienda/aros-cascada.jpg'),
-('Aros Perla Minimalista',         'Aros de perla sobre botón, estilo scandinavo',          12990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-003', 'https://img.tienda/aros-perla.jpg'),
-('Pulsera Nudos Amor',            'Pulsera trenzada de hilo encerado con nudo',             9990,   (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-001', 'https://img.tienda/pulsera-nudos.jpg'),
-('Pulsera Cadena Eslabón',        'Pulsera de acero quirúrgico baño oro',                  17990,  (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-002', 'https://img.tienda/pulsera-eslabon.jpg'),
-('Pulsera Charm Mariposa',        'Pulsera con dije mariposa y cristales',                 19990,  (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-003', 'https://img.tienda/pulsera-mariposa.jpg'),
-('Anillo Solitario Plata',        'Anillo solitario plata 925 con circonia',               15990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-001', 'https://img.tienda/anillo-solitario.jpg'),
-('Anillo Ajustable Floral',       'Anillo ajustable con diseño de flores grabadas',         11990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-002', 'https://img.tienda/anillo-floral.jpg'),
-('Anillo Trio Dije',              'Anillo triple con dijes luna, estrella y sol',           21990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-003', 'https://img.tienda/anillo-trio.jpg'),
-('Tobillera Dije Corona',         'Tobillera delicada con pequeño dije de corona',         8990,   (SELECT id FROM categories WHERE name = 'Tobilleras'), 'TOB-001', 'https://img.tienda/tobillera-corona.jpg'),
-('Tobillera Plata Concha',        'Tobillera de plata con dije concha marina',             10990,  (SELECT id FROM categories WHERE name = 'Tobilleras'), 'TOB-002', 'https://img.tienda/tobillera-concha.jpg'),
-('Broche Floral Rosa Gold',       'Broche de rosa en baño de oro para cabello',            7990,   (SELECT id FROM categories WHERE name = 'Broches'),    'BRC-001', 'https://img.tienda/broche-rosa.jpg'),
-('Horquilla Perla Juego',         'Juego de 4 horquillas con perla y cristal',             6990,   (SELECT id FROM categories WHERE name = 'Broches'),    'BRC-002', 'https://img.tienda/horquilla-perla.jpg'),
-('Collar Lobo Plata',             'Collar capa doble plata 925 con dije lobo',             27990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-004', 'https://img.tienda/collar-lobo.jpg'),
-('Aros Crescent Luna',            'Aros media luna invertida baño oro rosa',               16990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-004', 'https://img.tienda/aros-luna.jpg'),
-('Pulsera Manta Raya',            'Pulsera tejida a mano con cierre de plata',             7990,   (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-004', 'https://img.tienda/pulsera-manta.jpg'),
-('Anillo Midi Sol',               'Anillo midi baño oro con sol grabado',                  8990,   (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-004', 'https://img.tienda/anillo-midi.jpg');
+INSERT INTO products (name, description, price, category_id, sku, imagen_url, stock_quantity) VALUES
+('Collar Estrella Plateado',       'Collar de plata 925 con dije de estrella',              19990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-001', 'https://img.tienda/collar-estrella.jpg', 25),
+('Collar Perlas Clásico',          'Collar de perlas cultivadas con cierre dorado',         34990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-002', 'https://img.tienda/collar-perlas.jpg',   12),
+('Collar Corazón Rosa',            'Collar baño de oro rosa con dije de corazón',           24990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-003', 'https://img.tienda/collar-corazon.jpg',  3),
+('Aros Aro Dorado Fino',           'Aros circulares baño de oro 18k, pair elegante',        14990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-001', 'https://img.tienda/aros-dorados.jpg',    40),
+('Aros Cascada Cristal',           'Aros colgantes con cristales Swarovski',                22990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-002', 'https://img.tienda/aros-cascada.jpg',    0),
+('Aros Perla Minimalista',         'Aros de perla sobre botón, estilo scandinavo',          12990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-003', 'https://img.tienda/aros-perla.jpg',      8),
+('Pulsera Nudos Amor',            'Pulsera trenzada de hilo encerado con nudo',             9990,   (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-001', 'https://img.tienda/pulsera-nudos.jpg',   15),
+('Pulsera Cadena Eslabón',        'Pulsera de acero quirúrgico baño oro',                  17990,  (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-002', 'https://img.tienda/pulsera-eslabon.jpg', 6),
+('Pulsera Charm Mariposa',        'Pulsera con dije mariposa y cristales',                 19990,  (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-003', 'https://img.tienda/pulsera-mariposa.jpg', 2),
+('Anillo Solitario Plata',        'Anillo solitario plata 925 con circonia',               15990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-001', 'https://img.tienda/anillo-solitario.jpg', 9),
+('Anillo Ajustable Floral',       'Anillo ajustable con diseño de flores grabadas',         11990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-002', 'https://img.tienda/anillo-floral.jpg',   20),
+('Anillo Trio Dije',              'Anillo triple con dijes luna, estrella y sol',           21990,  (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-003', 'https://img.tienda/anillo-trio.jpg',      4),
+('Tobillera Dije Corona',         'Tobillera delicada con pequeño dije de corona',         8990,   (SELECT id FROM categories WHERE name = 'Tobilleras'), 'TOB-001', 'https://img.tienda/tobillera-corona.jpg', 11),
+('Tobillera Plata Concha',        'Tobillera de plata con dije concha marina',             10990,  (SELECT id FROM categories WHERE name = 'Tobilleras'), 'TOB-002', 'https://img.tienda/tobillera-concha.jpg', 1),
+('Broche Floral Rosa Gold',       'Broche de rosa en baño de oro para cabello',            7990,   (SELECT id FROM categories WHERE name = 'Broches'),    'BRC-001', 'https://img.tienda/broche-rosa.jpg',      18),
+('Horquilla Perla Juego',         'Juego de 4 horquillas con perla y cristal',             6990,   (SELECT id FROM categories WHERE name = 'Broches'),    'BRC-002', 'https://img.tienda/horquilla-perla.jpg',  30),
+('Collar Lobo Plata',             'Collar capa doble plata 925 con dije lobo',             27990,  (SELECT id FROM categories WHERE name = 'Collares'),   'COL-004', 'https://img.tienda/collar-lobo.jpg',       5),
+('Aros Crescent Luna',            'Aros media luna invertida baño oro rosa',               16990,  (SELECT id FROM categories WHERE name = 'Aros'),       'ARO-004', 'https://img.tienda/aros-luna.jpg',         7),
+('Pulsera Manta Raya',            'Pulsera tejida a mano con cierre de plata',             7990,   (SELECT id FROM categories WHERE name = 'Pulseras'),   'PUL-004', 'https://img.tienda/pulsera-manta.jpg',     2),
+('Anillo Midi Sol',               'Anillo midi baño oro con sol grabado',                  8990,   (SELECT id FROM categories WHERE name = 'Anillos'),    'ANI-004', 'https://img.tienda/anillo-midi.jpg',       14);
 
 INSERT INTO product_images (product_id, url, principal, orden) VALUES
 ((SELECT id FROM products WHERE sku = 'COL-001'), 'https://img.tienda/collar-estrella-1.jpg',  TRUE,  1),

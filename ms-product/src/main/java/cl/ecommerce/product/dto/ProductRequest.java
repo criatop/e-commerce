@@ -11,6 +11,8 @@ public record ProductRequest(
         @NotNull @Min(0) Double price,
         @NotNull UUID category,
         String imageUrl,
-        String sku
+        String sku,
+        @Min(0) Integer stockQuantity,
+        @Min(0) Integer lowStockThreshold
 ) {
 }
