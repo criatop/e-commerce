@@ -36,3 +36,6 @@ management:
 jwt:
   secret: ${JWT_SECRET:EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026}
   expirationMs: 86400000
+
+internal:
+  key: ${INTERNAL_KEY:accesorios-chic-internal}

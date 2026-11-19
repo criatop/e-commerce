@@ -1,6 +1,7 @@
 package cl.ecommerce.product.service;
 
 import cl.ecommerce.common.exception.InsufficientStockException;
+import cl.ecommerce.product.dto.BatchPriceResponse;
 import cl.ecommerce.product.dto.ProductRequest;
 import cl.ecommerce.product.dto.ProductResponse;
 import cl.ecommerce.product.dto.StockItemRequest;
@@ -137,20 +138,45 @@ class ProductStockServiceTest {
     }
 
     @Test
-    void batchDevuelveLosProductosEnElOrdenPedidoConSuDisponible() {
+    void batchSeparaEncontradosFaltantesEInactivos() {
+        UUID inactivo = UUID.randomUUID();
+        UUID inexistente = UUID.randomUUID();
+        Product activo = producto(id, 10, 4, 5);
+        Product desactivado = producto(inactivo, 4, 0, 5);
+        desactivado.setActive(false);
+        when(productRepository.findAllById(any())).thenReturn(List.of(activo, desactivado));
+
+        BatchPriceResponse respuesta = productService.batch(List.of(id, inexistente, inactivo));
+
+        assertThat(respuesta.found()).extracting(ProductResponse::getId).containsExactly(id);
+        assertThat(respuesta.found().get(0).getAvailable()).isEqualTo(6);
+        assertThat(respuesta.missing()).containsExactly(inexistente);
+        assertThat(respuesta.inactive()).containsExactly(inactivo);
+    }
+
+    @Test
+    void batchConTodosActivosDejaLasListasDeProblemasVacias() {
         UUID segundo = UUID.randomUUID();
-        Product primero = producto(id, 10, 4, 5);
-        Product otro = producto(segundo, 6, 0, 5);
-        when(productRepository.findAllById(any())).thenReturn(List.of(primero, otro));
+        when(productRepository.findAllById(any())).thenReturn(List.of(
+                producto(id, 10, 4, 5), producto(segundo, 6, 0, 5)));
 
-        List<ProductResponse> respuesta = productService.batch(List.of(segundo, id, UUID.randomUUID()));
+        BatchPriceResponse respuesta = productService.batch(List.of(id, segundo));
 
-        assertThat(respuesta).extracting(ProductResponse::getId).containsExactly(segundo, id);
-        assertThat(respuesta.get(0).getAvailable()).isEqualTo(6);
-        assertThat(respuesta.get(1).getAvailable()).isEqualTo(6);
-        assertThat(respuesta.get(1).getStockQuantity()).isEqualTo(10);
-        assertThat(respuesta.get(1).getReservedQuantity()).isEqualTo(4);
-        assertThat(respuesta.get(1).getLowStockThreshold()).isEqualTo(5);
+        assertThat(respuesta.found()).hasSize(2);
+        assertThat(respuesta.missing()).isEmpty();
+        assertThat(respuesta.inactive()).isEmpty();
+    }
+
+    @Test
+    void batchConservaElOrdenPedidoYDescartaDuplicados() {
+        UUID segundo = UUID.randomUUID();
+        when(productRepository.findAllById(any())).thenReturn(List.of(
+                producto(id, 10, 0, 5), producto(segundo, 6, 0, 5)));
+
+        BatchPriceResponse respuesta = productService.batch(List.of(segundo, id, segundo, id));
+
+        assertThat(respuesta.found()).extracting(ProductResponse::getId)
+                .containsExactly(segundo, id);
     }
 
     @Test

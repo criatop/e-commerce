@@ -3,6 +3,7 @@ package cl.ecommerce.product.service;
 import cl.ecommerce.common.exception.BusinessException;
 import cl.ecommerce.common.exception.InsufficientStockException;
 import cl.ecommerce.common.exception.NotFoundException;
+import cl.ecommerce.product.dto.BatchPriceResponse;
 import cl.ecommerce.product.dto.ProductRequest;
 import cl.ecommerce.product.dto.ProductResponse;
 import cl.ecommerce.product.dto.StockItemRequest;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,18 +79,31 @@ public class ProductService {
                 .toList();
     }
 
-    public List<ProductResponse> batch(List<UUID> ids) {
+    public BatchPriceResponse batch(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            return List.of();
+            return BatchPriceResponse.empty();
         }
-        List<UUID> solicitados = ids.stream().distinct().toList();
+        List<UUID> solicitados = ids.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         Map<UUID, Product> porId = productRepository.findAllById(solicitados).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
-        return solicitados.stream()
-                .map(porId::get)
-                .filter(Objects::nonNull)
-                .map(this::toResponse)
-                .toList();
+
+        List<ProductResponse> found = new ArrayList<>();
+        List<UUID> missing = new ArrayList<>();
+        List<UUID> inactive = new ArrayList<>();
+        for (UUID solicitado : solicitados) {
+            Product producto = porId.get(solicitado);
+            if (producto == null) {
+                missing.add(solicitado);
+            } else if (!producto.isActive()) {
+                inactive.add(solicitado);
+            } else {
+                found.add(toResponse(producto));
+            }
+        }
+        return new BatchPriceResponse(found, missing, inactive);
     }
 
     public ProductResponse update(UUID id, ProductRequest request) {

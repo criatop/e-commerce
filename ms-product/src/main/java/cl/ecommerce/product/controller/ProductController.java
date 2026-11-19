@@ -1,6 +1,7 @@
 package cl.ecommerce.product.controller;
 
 import cl.ecommerce.common.dto.ApiResponse;
+import cl.ecommerce.product.dto.BatchPriceResponse;
 import cl.ecommerce.product.dto.ProductBatchRequest;
 import cl.ecommerce.product.dto.ProductRequest;
 import cl.ecommerce.product.dto.ProductResponse;
@@ -33,7 +34,7 @@ public class ProductController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> batch(
+    public ResponseEntity<ApiResponse<BatchPriceResponse>> batch(
             @Valid @RequestBody ProductBatchRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(productService.batch(request.ids())));
     }
@@ -63,6 +64,7 @@ public class ProductController {
     }
 
     @PostMapping("/stock/restore")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ApiResponse<StockOperationResponse>> restoreStock(
             @RequestBody List<StockItemRequest> items) {
         productService.restoreStock(items);

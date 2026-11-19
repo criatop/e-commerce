@@ -2,6 +2,7 @@ package cl.ecommerce.product.controller;
 
 import cl.ecommerce.common.exception.BusinessException;
 import cl.ecommerce.common.exception.GlobalExceptionHandler;
+import cl.ecommerce.product.dto.BatchPriceResponse;
 import cl.ecommerce.product.dto.ProductResponse;
 import cl.ecommerce.product.dto.StockItemRequest;
 import cl.ecommerce.product.service.ProductService;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,16 +80,21 @@ class ProductControllerTest {
     }
 
     @Test
-    void batchRecibeElLoteDeIds() throws Exception {
-        when(productService.batch(List.of(id))).thenReturn(List.of(
-                ProductResponse.builder().id(id).stockQuantity(7).reservedQuantity(2)
-                        .lowStockThreshold(5).available(5).build()));
+    void batchRecibeElLoteDeIdsYDevuelveElDetalleSeparado() throws Exception {
+        UUID faltante = UUID.randomUUID();
+        when(productService.batch(anyList())).thenReturn(new BatchPriceResponse(
+                List.of(ProductResponse.builder().id(id).stockQuantity(7).reservedQuantity(2)
+                        .lowStockThreshold(5).available(5).build()),
+                List.of(faltante),
+                List.of()));
 
         mockMvc.perform(post("/api/v1/products/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ids\":[\"" + id + "\"]}"))
+                        .content("{\"ids\":[\"" + id + "\",\"" + faltante + "\"]}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.datos[0].available").value(5));
+                .andExpect(jsonPath("$.datos.found[0].available").value(5))
+                .andExpect(jsonPath("$.datos.missing[0]").value(faltante.toString()))
+                .andExpect(jsonPath("$.datos.inactive").isEmpty());
     }
 
     @Test

@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FeignClientConfigTest {
 
+    private static final String INTERNAL_KEY = "clave-interna-de-prueba";
+
     @AfterEach
     void tearDown() {
         RequestContextHolder.resetRequestAttributes();
@@ -26,18 +28,30 @@ class FeignClientConfigTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         RequestTemplate template = new RequestTemplate();
-        new FeignClientConfig().jwtPropagation().apply(template);
+        new FeignClientConfig(INTERNAL_KEY).jwtPropagation().apply(template);
 
         assertEquals(List.of("Bearer token-de-prueba"), template.headers().get(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
-    void noPropagaHeaderSiNoHayPeticionEnCurso() {
+    void propagaLaCabeceraInternaHaciaElServicioRemoto() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        RequestTemplate template = new RequestTemplate();
+        new FeignClientConfig(INTERNAL_KEY).jwtPropagation().apply(template);
+
+        assertEquals(List.of(INTERNAL_KEY), template.headers().get("X-Internal-Key"));
+    }
+
+    @Test
+    void noPropagaAuthorizationSiNoHayPeticionEnCursoPeroSiLaCabeceraInterna() {
         RequestContextHolder.resetRequestAttributes();
 
         RequestTemplate template = new RequestTemplate();
-        new FeignClientConfig().jwtPropagation().apply(template);
+        new FeignClientConfig(INTERNAL_KEY).jwtPropagation().apply(template);
 
         assertFalse(template.headers().containsKey(HttpHeaders.AUTHORIZATION));
+        assertEquals(List.of(INTERNAL_KEY), template.headers().get("X-Internal-Key"));
     }
 }
