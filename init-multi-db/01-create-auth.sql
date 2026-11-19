@@ -22,10 +22,9 @@ CREATE TABLE regions (
 CREATE TABLE comunas (
     id        INT PRIMARY KEY,
     name      VARCHAR(120) NOT NULL,
-    region_id INT NOT NULL REFERENCES regions(id)
+    region_id INT NOT NULL REFERENCES regions(id),
+    UNIQUE (region_id, name)
 );
-
-CREATE INDEX idx_comunas_region ON comunas(region_id);
 
 CREATE TABLE users (
     id               BIGSERIAL PRIMARY KEY,
@@ -35,7 +34,7 @@ CREATE TABLE users (
     nombre           VARCHAR(100) NOT NULL,
     apellidos        VARCHAR(100),
     fecha_nacimiento DATE,
-    role_id          INT REFERENCES roles(id),
+    role_id          INT NOT NULL REFERENCES roles(id),
     region_id        INT REFERENCES regions(id),
     comuna_id        INT REFERENCES comunas(id),
     direccion        VARCHAR(255),

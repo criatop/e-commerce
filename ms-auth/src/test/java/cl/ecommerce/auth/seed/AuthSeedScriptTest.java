@@ -124,6 +124,21 @@ class AuthSeedScriptTest {
     }
 
     @Test
+    void usersTableRequiresRole() {
+        assertThat(script)
+                .as("users.role_id debe ser NOT NULL: AuthService.login usa user.getRole().getName()")
+                .containsPattern("(?is)role_id\\s+INT\\s+(?:NOT\\s+NULL\\s+REFERENCES\\s+roles\\(id\\)"
+                        + "|REFERENCES\\s+roles\\(id\\)\\s+NOT\\s+NULL)");
+    }
+
+    @Test
+    void comunasAreUniquePerRegionAndName() {
+        assertThat(script)
+                .as("comunas debe declarar UNIQUE(region_id, name)")
+                .containsPattern("(?is)UNIQUE\\s*\\(\\s*region_id\\s*,\\s*name\\s*\\)");
+    }
+
+    @Test
     void demoUsersHaveValidAndDistinctRuns() {
         Map<String, String> runs = new HashMap<>();
         for (Map<String, String> user : demoUsers()) {
