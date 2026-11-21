@@ -31,6 +31,8 @@ export interface Producto {
   precio: number;
   stock: number;
   stockCritico: number;
+  /** Unidades reservadas por órdenes; se conservan al editar el stock. */
+  reservado?: number;
   categoriaId: number | string;
   imagen: string;
   estado: Estado;

@@ -1,0 +1,36 @@
+import { NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
+export default function AdminLayout() {
+  const { esAdmin } = useAuth();
+
+  return (
+    <>
+      <nav className="d-flex flex-wrap gap-2 mb-4">
+        {esAdmin && (
+          <NavLink to="/admin" end className="btn btn-outline-secondary btn-sm">
+            <i className="bi bi-speedometer2 me-1" /> Resumen
+          </NavLink>
+        )}
+        <NavLink to="/admin/productos" className="btn btn-outline-secondary btn-sm">
+          <i className="bi bi-box-seam me-1" /> Productos
+        </NavLink>
+        {esAdmin && (
+          <NavLink to="/admin/categorias" className="btn btn-outline-secondary btn-sm">
+            <i className="bi bi-tags me-1" /> Categorías
+          </NavLink>
+        )}
+        {esAdmin && (
+          <NavLink to="/admin/usuarios" className="btn btn-outline-secondary btn-sm">
+            <i className="bi bi-people me-1" /> Usuarios
+          </NavLink>
+        )}
+        <NavLink to="/admin/ordenes" className="btn btn-outline-secondary btn-sm">
+          <i className="bi bi-receipt me-1" /> Órdenes / Reportes
+        </NavLink>
+      </nav>
+
+      <Outlet />
+    </>
+  );
+}

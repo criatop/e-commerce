@@ -1,28 +1,64 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { catalogApi } from "../../api/catalog";
+import { mapProducto } from "../../api/mappers";
 import DataTable, { type Columna } from "../../components/common/DataTable";
 import ImagenProducto from "../../components/common/ImagenProducto";
-import { useColeccion } from "../../storage/useColeccion";
-import { CHIC_KEYS } from "../../storage/claves";
 import { useTablasMaestras } from "../../hooks/useTablasMaestras";
 import { alertas } from "../../utils/alerta";
 import { formatearPrecio } from "../../utils/formato";
+import { mensajeError } from "../../utils/error";
 import type { Producto } from "../../types";
 
 export default function AdminProductos() {
-  const { datos: productos, guardar } = useColeccion<Producto>(CHIC_KEYS.productos);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
   const { nombreCategoria } = useTablasMaestras();
 
-  async function eliminar(codigo: string) {
-    const producto = productos.find((p) => p.codigo === codigo);
+  const cargar = useCallback(async () => {
+    try {
+      const lista = await catalogApi.listProducts();
+      setProductos(lista.map(mapProducto));
+    } catch (e: unknown) {
+      setError(mensajeError(e));
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    setError("");
+    await cargar();
+  }, [cargar]);
+
+  useEffect(() => {
+    void (async () => {
+      await cargar();
+    })();
+  }, [cargar]);
+
+  async function eliminar(producto: Producto) {
+    if (!producto.id) {
+      void alertas.aviso("No se puede eliminar", "El producto no tiene un identificador de API.");
+      return;
+    }
+
     const ok = await alertas.confirmar(
       "Eliminar producto",
-      `¿Seguro que quieres eliminar "${producto?.nombre}"? Esta acción no se puede deshacer.`,
+      `¿Seguro que quieres eliminar "${producto.nombre}"? Esta acción no se puede deshacer.`,
       "Sí, eliminar",
     );
     if (!ok) return;
 
-    guardar(productos.filter((p) => p.codigo !== codigo));
-    void alertas.exito("Producto eliminado", `${producto?.nombre} ya no está en el catálogo.`);
+    try {
+      await catalogApi.deleteProduct(producto.id);
+      void alertas.exito("Producto eliminado", `${producto.nombre} ya no está en el catálogo.`);
+      await recargar();
+    } catch (e: unknown) {
+      void alertas.error("No se pudo eliminar", mensajeError(e));
+    }
   }
 
   const columnas: Columna<Producto>[] = [
@@ -69,9 +105,9 @@ export default function AdminProductos() {
     {
       clave: "categoria",
       titulo: "Categoría",
-      orden: (p) => nombreCategoria(Number(p.categoriaId)),
+      orden: (p) => nombreCategoria(p.categoriaId),
       render: (p) => (
-        <span className="badge badge-categoria">{nombreCategoria(Number(p.categoriaId))}</span>
+        <span className="badge badge-categoria">{nombreCategoria(p.categoriaId)}</span>
       ),
     },
     {
@@ -97,7 +133,7 @@ export default function AdminProductos() {
       render: (p) => (
         <>
           <Link
-            to={`/admin/productos/form?codigo=${encodeURIComponent(p.codigo)}`}
+            to={`/admin/productos/form?id=${encodeURIComponent(p.id ?? "")}`}
             className="btn btn-sm btn-outline-primary me-1"
             title="Editar"
           >
@@ -107,7 +143,7 @@ export default function AdminProductos() {
             type="button"
             className="btn btn-sm btn-outline-danger"
             title="Eliminar"
-            onClick={() => void eliminar(p.codigo)}
+            onClick={() => void eliminar(p)}
           >
             <i className="bi bi-trash" />
           </button>
@@ -133,16 +169,18 @@ export default function AdminProductos() {
         </div>
       </div>
 
+      {error && <div className="alert alert-danger">No se pudieron cargar los productos: {error}</div>}
+
       <div className="card border-0 caja-admin-tabla">
         <div className="card-body p-0">
           <DataTable
             filas={productos}
             columnas={columnas}
-            claveFila={(p) => p.codigo}
+            claveFila={(p) => p.id ?? p.codigo}
             coincide={(p, texto) => p.nombre.toLowerCase().includes(texto)}
             placeholderBusqueda="Buscar producto por nombre..."
             porPagina={5}
-            textoVacio="No se encontraron productos."
+            textoVacio={cargando ? "Cargando productos..." : "No se encontraron productos."}
           />
         </div>
       </div>

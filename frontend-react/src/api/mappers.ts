@@ -1,5 +1,12 @@
-import type { Categoria, Noticia, Orden, Producto } from "../types";
-import type { CategoriaApi, NoticiaApi, OrdenApi, OrdenEstadoApi, ProductoApi } from "./types";
+import type { Categoria, Noticia, Orden, Producto, Usuario } from "../types";
+import type {
+  CategoriaApi,
+  NoticiaApi,
+  OrdenApi,
+  OrdenEstadoApi,
+  ProductoApi,
+  UsuarioApi,
+} from "./types";
 
 export function mapProducto(p: ProductoApi): Producto {
     return {
@@ -10,6 +17,7 @@ export function mapProducto(p: ProductoApi): Producto {
         precio: p.price,
         stock: p.available,
         stockCritico: p.lowStockThreshold,
+        reservado: p.reservedQuantity,
         categoriaId: p.category,
         imagen: p.imageUrl,
         estado: p.active ? "Activo" : "Inactivo",
@@ -23,6 +31,25 @@ export function mapCategoria(c: CategoriaApi): Categoria {
         descripcion: c.description,
         activa: c.activa,
     };
+}
+
+/** UserResponse de ms-auth al tipo de usuario usado por el panel. */
+export function mapUsuarioAdmin(u: UsuarioApi): Usuario {
+  return {
+    id: u.id,
+    run: u.run,
+    nombre: u.nombre,
+    apellidos: u.apellidos ?? "",
+    correo: u.email,
+    fechaNacimiento: u.fechaNacimiento ?? undefined,
+    rolId: u.roleId,
+    rol: u.roleName ?? undefined,
+    regionId: u.regionId ?? null,
+    comunaId: u.comunaId ?? null,
+    direccion: u.direccion ?? "",
+    estado: u.activo === false ? "Inactivo" : "Activo",
+    activo: u.activo ?? true,
+  };
 }
 
 export function mapNoticia(n: NoticiaApi): Noticia {

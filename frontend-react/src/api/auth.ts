@@ -31,6 +31,19 @@ export interface UpdateProfileRequest {
   nombre?: string; apellidos?: string; fechaNacimiento?: string;
   regionId?: number | null; comunaId?: number | null; direccion?: string;
 }
+/** AdminRegisterRequest de ms-auth. El rol viaja como texto (ADMIN/SELLER/CUSTOMER). */
+export interface AdminRegisterPayload {
+  run: string;
+  email: string;
+  password: string;
+  nombre: string;
+  apellidos?: string;
+  fechaNacimiento?: string;
+  rol: string;
+  regionId?: number | null;
+  comunaId?: number | null;
+  direccion?: string;
+}
 
 export function mapUsuario(u: AuthUser) {
   const rol = (u.roleName || "").toUpperCase();
@@ -65,6 +78,11 @@ export async function register(req: RegisterRequest) {
   const usuario = mapUsuario(res.usuario);
   localStorage.setItem(CHIC_KEYS.sesion, JSON.stringify(usuario));
   return { ...res, usuario };
+}
+
+/** Alta de usuarios hecha por un ADMIN; no reemplaza la sesión actual. */
+export function adminRegister(req: AdminRegisterPayload) {
+  return apiPost<AuthResponse>("/api/v1/auth/admin/register", req);
 }
 
 export async function me() {

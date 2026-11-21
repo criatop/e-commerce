@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useColeccion } from "../../storage/useColeccion";
-import { CHIC_KEYS } from "../../storage/claves";
+import { catalogApi, type ProductPayload } from "../../api/catalog";
+import { mapProducto } from "../../api/mappers";
 import { useTablasMaestras } from "../../hooks/useTablasMaestras";
 import { alertas } from "../../utils/alerta";
+import { mensajeError } from "../../utils/error";
 import type { Producto } from "../../types";
 
 const VACIO = {
@@ -15,7 +16,6 @@ const VACIO = {
   stockCritico: "5",
   imagen: "",
   descripcion: "",
-  estado: "Activo" as const,
 };
 
 const MENSAJES = {
@@ -28,39 +28,78 @@ const MENSAJES = {
   descripcion: "Escribe una descripción.",
 };
 
+function desdeProducto(producto: Producto) {
+  return {
+    codigo: producto.codigo,
+    nombre: producto.nombre,
+    categoriaId: String(producto.categoriaId),
+    precio: String(producto.precio),
+    stock: String(producto.stock),
+    stockCritico: String(producto.stockCritico),
+    imagen: producto.imagen,
+    descripcion: producto.descripcion,
+  };
+}
+
 export default function AdminProductoForm() {
   const [parametros] = useSearchParams();
   const navegar = useNavigate();
+  const idEditar = parametros.get("id");
   const codigoEditar = parametros.get("codigo");
 
-  const { datos: productos, guardar } = useColeccion<Producto>(CHIC_KEYS.productos);
   const { categorias } = useTablasMaestras();
 
-  const existente = productos.find((p) => p.codigo === codigoEditar);
-
-  const [form, setForm] = useState(() =>
-    existente
-      ? {
-          codigo: existente.codigo,
-          nombre: existente.nombre,
-          categoriaId: String(existente.categoriaId),
-          precio: String(existente.precio),
-          stock: String(existente.stock),
-          stockCritico: String(existente.stockCritico),
-          imagen: existente.imagen,
-          descripcion: existente.descripcion,
-          estado: existente.estado,
-        }
-      : VACIO,
-  );
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [existente, setExistente] = useState<Producto | null>(null);
+  const [form, setForm] = useState(VACIO);
   const [errores, setErrores] = useState<Partial<Record<keyof typeof VACIO, boolean>>>({});
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let activo = true;
+    void (async () => {
+      setCargando(true);
+      setError("");
+      try {
+        const lista = (await catalogApi.listProducts()).map(mapProducto);
+        if (!activo) return;
+        setProductos(lista);
+
+        if (idEditar) {
+          const producto = mapProducto(await catalogApi.getProduct(idEditar));
+          if (activo) {
+            setExistente(producto);
+            setForm(desdeProducto(producto));
+          }
+        } else if (codigoEditar) {
+          const producto = lista.find((p) => p.codigo === codigoEditar) ?? null;
+          if (activo) {
+            setExistente(producto);
+            setForm(producto ? desdeProducto(producto) : VACIO);
+          }
+        } else if (activo) {
+          setExistente(null);
+          setForm(VACIO);
+        }
+      } catch (e: unknown) {
+        if (activo) setError(mensajeError(e));
+      } finally {
+        if (activo) setCargando(false);
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, [idEditar, codigoEditar]);
 
   function escribir(campo: keyof typeof VACIO, valor: string) {
     setForm((previo) => ({ ...previo, [campo]: valor }));
     if (errores[campo]) setErrores((previos) => ({ ...previos, [campo]: false }));
   }
 
-  function subirImagen(e: React.ChangeEvent<HTMLInputElement>) {
+  function subirImagen(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -86,7 +125,7 @@ export default function AdminProductoForm() {
     const codigoRepetido = productos.some(
       (p) =>
         p.codigo.toLowerCase() === form.codigo.trim().toLowerCase() &&
-        p.codigo !== codigoEditar,
+        p.id !== existente?.id,
     );
     if (codigoRepetido) nuevos.codigo = true;
 
@@ -94,7 +133,7 @@ export default function AdminProductoForm() {
     return Object.keys(nuevos).length === 0;
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     if (!validar()) {
@@ -102,27 +141,36 @@ export default function AdminProductoForm() {
       return;
     }
 
-    const registro: Producto = {
-      codigo: form.codigo.trim(),
-      nombre: form.nombre.trim(),
-      descripcion: form.descripcion.trim(),
-      precio: Number(form.precio),
-      stock: Number(form.stock),
-      stockCritico: Number(form.stockCritico),
-      categoriaId: Number(form.categoriaId),
-      imagen: form.imagen.trim(),
-      estado: form.estado,
+    const cuerpo: ProductPayload = {
+      name: form.nombre.trim(),
+      description: form.descripcion.trim(),
+      price: Number(form.precio),
+      category: form.categoriaId,
+      sku: form.codigo.trim(),
+      imageUrl: form.imagen.trim(),
+      // El backend guarda stock total; las unidades reservadas no se editan aquí.
+      stockQuantity: Number(form.stock) + (existente?.reservado ?? 0),
+      lowStockThreshold: Number(form.stockCritico),
     };
 
-    if (existente) {
-      guardar(productos.map((p) => (p.codigo === existente.codigo ? registro : p)));
-      void alertas.exito("Producto actualizado", `${registro.nombre} fue guardado.`);
-    } else {
-      guardar([...productos, registro]);
-      void alertas.exito("Producto creado", `${registro.nombre} se agregó al catálogo.`);
+    setGuardando(true);
+    setError("");
+    try {
+      if (existente?.id) {
+        await catalogApi.updateProduct(existente.id, cuerpo);
+        void alertas.exito("Producto actualizado", `${cuerpo.name} fue guardado.`);
+      } else {
+        await catalogApi.createProduct(cuerpo);
+        void alertas.exito("Producto creado", `${cuerpo.name} se agregó al catálogo.`);
+      }
+      navegar("/admin/productos");
+    } catch (e: unknown) {
+      const mensaje = mensajeError(e);
+      setError(mensaje);
+      void alertas.error("No se pudo guardar", mensaje);
+    } finally {
+      setGuardando(false);
     }
-
-    navegar("/admin/productos");
   }
 
   return (
@@ -141,10 +189,12 @@ export default function AdminProductoForm() {
         </Link>
       </div>
 
+      {error && <div className="alert alert-danger">No se pudo completar la operación: {error}</div>}
+
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8">
           <div className="card border-0 p-4 caja-contacto">
-            <form id="formProductoAdmin" noValidate onSubmit={enviar}>
+            <form id="formProductoAdmin" noValidate onSubmit={(evento) => void enviar(evento)}>
               <div className="row g-3">
                 <div className="col-12 col-md-6">
                   <label htmlFor="codigoProducto" className="form-label fw-bold">
@@ -222,7 +272,7 @@ export default function AdminProductoForm() {
 
                 <div className="col-12 col-md-3">
                   <label htmlFor="stockProducto" className="form-label fw-bold">
-                    Stock
+                    Stock disponible
                   </label>
                   <input
                     type="number"
@@ -297,8 +347,8 @@ export default function AdminProductoForm() {
                   <Link to="/admin/productos" className="btn btn-outline-secondary">
                     Cancelar
                   </Link>
-                  <button type="submit" className="btn btn-contacto">
-                    Guardar Producto
+                  <button type="submit" className="btn btn-contacto" disabled={cargando || guardando}>
+                    {guardando ? "Guardando..." : "Guardar Producto"}
                   </button>
                 </div>
               </div>

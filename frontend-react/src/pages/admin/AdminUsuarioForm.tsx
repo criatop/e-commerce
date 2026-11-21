@@ -1,13 +1,30 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useColeccion } from "../../storage/useColeccion";
-import { CHIC_KEYS } from "../../storage/claves";
+import { adminRegister } from "../../api/auth";
+import { apiGet, apiPut } from "../../api/client";
+import { mapUsuarioAdmin } from "../../api/mappers";
+import type { UsuarioApi } from "../../api/types";
 import { useTablasMaestras } from "../../hooks/useTablasMaestras";
 import { alertas } from "../../utils/alerta";
+import { mensajeError } from "../../utils/error";
 import { limpiarRun, validarRun } from "../../utils/run";
 import type { Usuario } from "../../types";
 
-const VACIO = {
+interface Formulario {
+  run: string;
+  nombre: string;
+  apellidos: string;
+  correo: string;
+  password: string;
+  fechaNacimiento: string;
+  rolId: string;
+  regionId: string;
+  comunaId: string;
+  direccion: string;
+  estado: "Activo" | "Inactivo";
+}
+
+const VACIO: Formulario = {
   run: "",
   nombre: "",
   apellidos: "",
@@ -18,73 +35,118 @@ const VACIO = {
   regionId: "",
   comunaId: "",
   direccion: "",
-  estado: "Activo" as const,
+  estado: "Activo",
 };
+
+/** roleName esperado por /api/v1/auth/admin/register. */
+const ROL_POR_ID: Record<number, string> = { 1: "ADMIN", 2: "SELLER", 3: "CUSTOMER" };
+
+function desdeUsuario(usuario: Usuario): Formulario {
+  return {
+    run: usuario.run,
+    nombre: usuario.nombre,
+    apellidos: usuario.apellidos,
+    correo: usuario.correo,
+    password: "",
+    fechaNacimiento: usuario.fechaNacimiento ?? "",
+    rolId: String(usuario.rolId),
+    regionId:
+      usuario.regionId === null || usuario.regionId === undefined ? "" : String(usuario.regionId),
+    comunaId:
+      usuario.comunaId === null || usuario.comunaId === undefined ? "" : String(usuario.comunaId),
+    direccion: usuario.direccion ?? "",
+    estado: usuario.activo === false ? "Inactivo" : "Activo",
+  };
+}
 
 export default function AdminUsuarioForm() {
   const [parametros] = useSearchParams();
   const navegar = useNavigate();
+  const idEditar = parametros.get("id");
   const runEditar = parametros.get("run");
 
-  const { datos: usuarios, guardar } = useColeccion<Usuario>(CHIC_KEYS.usuarios);
   const { roles, regiones, comunasDe } = useTablasMaestras();
 
-  const existente = usuarios.find((u) => u.run === runEditar);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [existente, setExistente] = useState<Usuario | null>(null);
+  const [form, setForm] = useState<Formulario>(VACIO);
+  const [errores, setErrores] = useState<Partial<Record<keyof Formulario, boolean>>>({});
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
 
-  const [form, setForm] = useState(() =>
-    existente
-      ? {
-          run: existente.run,
-          nombre: existente.nombre,
-          apellidos: existente.apellidos,
-          correo: existente.correo,
-          password: "",
-          fechaNacimiento: existente.fechaNacimiento,
-          rolId: String(existente.rolId),
-          regionId: String(existente.regionId),
-          comunaId: String(existente.comunaId),
-          direccion: existente.direccion,
-          estado: existente.estado,
+  useEffect(() => {
+    let activo = true;
+    void (async () => {
+      setCargando(true);
+      setError("");
+      try {
+        const lista = (await apiGet<UsuarioApi[]>("/api/v1/users")).map(mapUsuarioAdmin);
+        if (!activo) return;
+        setUsuarios(lista);
+
+        if (idEditar) {
+          const usuario = mapUsuarioAdmin(await apiGet<UsuarioApi>(`/api/v1/users/${idEditar}`));
+          if (activo) {
+            setExistente(usuario);
+            setForm(desdeUsuario(usuario));
+          }
+        } else if (runEditar) {
+          const usuario = lista.find((u) => u.run === runEditar) ?? null;
+          if (activo) {
+            setExistente(usuario);
+            setForm(usuario ? desdeUsuario(usuario) : VACIO);
+          }
+        } else if (activo) {
+          setExistente(null);
+          setForm(VACIO);
         }
-      : VACIO,
-  );
+      } catch (e: unknown) {
+        if (activo) setError(mensajeError(e));
+      } finally {
+        if (activo) setCargando(false);
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, [idEditar, runEditar]);
 
-  const [errores, setErrores] = useState<Partial<Record<keyof typeof VACIO, boolean>>>({});
-
-  function escribir(campo: keyof typeof VACIO, valor: string) {
+  function escribir(campo: keyof Formulario, valor: string) {
     setForm((previo) => ({ ...previo, [campo]: valor }));
     if (errores[campo]) setErrores((previos) => ({ ...previos, [campo]: false }));
   }
 
   function validar(requierePassword: boolean): boolean {
-    const nuevos: Partial<Record<keyof typeof VACIO, boolean>> = {};
+    const nuevos: Partial<Record<keyof Formulario, boolean>> = {};
 
-    if (!validarRun(form.run)) nuevos.run = true;
-    if (!form.nombre.trim()) nuevos.nombre = true;
-    if (!form.apellidos.trim()) nuevos.apellidos = true;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim())) nuevos.correo = true;
-    if (requierePassword && form.password.length < 6) nuevos.password = true;
-    if (!form.fechaNacimiento || new Date(form.fechaNacimiento) >= new Date())
-      nuevos.fechaNacimiento = true;
+    if (requierePassword) {
+      if (!validarRun(form.run)) nuevos.run = true;
+      if (!form.nombre.trim()) nuevos.nombre = true;
+      if (!form.apellidos.trim()) nuevos.apellidos = true;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim())) nuevos.correo = true;
+      if (form.password.length < 6) nuevos.password = true;
+      if (!form.fechaNacimiento || new Date(form.fechaNacimiento) >= new Date())
+        nuevos.fechaNacimiento = true;
+      if (!form.regionId) nuevos.regionId = true;
+      if (!form.comunaId) nuevos.comunaId = true;
+      if (!form.direccion.trim()) nuevos.direccion = true;
+
+      const run = limpiarRun(form.run);
+      const correo = form.correo.trim();
+      const repetido = usuarios.some(
+        (u) => u.run === run || u.correo.toLowerCase() === correo.toLowerCase(),
+      );
+      if (repetido) nuevos.run = true;
+    }
+
     if (!form.rolId) nuevos.rolId = true;
-    if (!form.regionId) nuevos.regionId = true;
-    if (!form.comunaId) nuevos.comunaId = true;
-    if (!(form.direccion ?? "").trim()) nuevos.direccion = true;
-
-    const run = limpiarRun(form.run);
-    const correo = form.correo.trim();
-    const repetido = usuarios.some(
-      (u) =>
-        u.run !== runEditar &&
-        (u.run === run || u.correo.toLowerCase() === correo.toLowerCase()),
-    );
-    if (repetido) nuevos.run = true;
 
     setErrores(nuevos);
     return Object.keys(nuevos).length === 0;
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     if (!validar(!existente)) {
@@ -92,42 +154,54 @@ export default function AdminUsuarioForm() {
       return;
     }
 
-    const run = limpiarRun(form.run);
-
-    const registro: Usuario = {
-      run,
-      nombre: form.nombre.trim(),
-      apellidos: form.apellidos.trim(),
-      correo: form.correo.trim(),
-      password: form.password || (existente?.password ?? ""),
-      fechaNacimiento: form.fechaNacimiento,
-      rolId: Number(form.rolId),
-      regionId: Number(form.regionId),
-      comunaId: Number(form.comunaId),
-      direccion: (form.direccion ?? "").trim(),
-      estado: form.estado,
-    };
-
-    if (existente) {
-      guardar(usuarios.map((u) => (u.run === runEditar ? registro : u)));
-      void alertas.exito("Usuario actualizado", `${registro.nombre} fue guardado.`);
-    } else {
-      guardar([...usuarios, registro]);
-      void alertas.exito("Usuario creado", `${registro.nombre} fue registrado.`);
+    setGuardando(true);
+    setError("");
+    try {
+      if (existente?.id !== undefined) {
+        // La API solo permite cambiar rol y estado de un usuario existente.
+        await apiPut(`/api/v1/users/${existente.id}`, {
+          roleId: Number(form.rolId),
+          activo: form.estado === "Activo",
+        });
+        void alertas.exito("Usuario actualizado", `${existente.nombre} fue guardado.`);
+      } else {
+        await adminRegister({
+          run: limpiarRun(form.run),
+          email: form.correo.trim(),
+          password: form.password,
+          nombre: form.nombre.trim(),
+          apellidos: form.apellidos.trim(),
+          fechaNacimiento: form.fechaNacimiento,
+          rol: ROL_POR_ID[Number(form.rolId)] ?? "CUSTOMER",
+          regionId: Number(form.regionId),
+          comunaId: Number(form.comunaId),
+          direccion: form.direccion.trim(),
+        });
+        void alertas.exito("Usuario creado", `${form.nombre.trim()} fue registrado.`);
+      }
+      navegar("/admin/usuarios");
+    } catch (e: unknown) {
+      const mensaje = mensajeError(e);
+      setError(mensaje);
+      void alertas.error("No se pudo guardar", mensaje);
+    } finally {
+      setGuardando(false);
     }
-
-    navegar("/admin/usuarios");
   }
+
+  const soloEdicion = existente !== null;
 
   return (
     <main className="container my-5">
       <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
           <h1 className="fw-bold h2 titulo-admin">
-            {existente ? "Editar Usuario" : "Formulario de Usuario"}
+            {soloEdicion ? "Editar Usuario" : "Formulario de Usuario"}
           </h1>
           <p className="text-muted mb-0">
-            Registra o modifica la información de una cuenta del sistema.
+            {soloEdicion
+              ? "La API permite cambiar el rol y el estado de la cuenta. Los datos personales no se editan aquí."
+              : "Registra una nueva cuenta del sistema."}
           </p>
         </div>
         <Link to="/admin/usuarios" className="btn btn-outline-secondary btn-sm">
@@ -135,10 +209,12 @@ export default function AdminUsuarioForm() {
         </Link>
       </div>
 
+      {error && <div className="alert alert-danger">No se pudo completar la operación: {error}</div>}
+
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8">
           <div className="card border-0 p-4 caja-contacto">
-            <form id="formUsuarioAdmin" noValidate onSubmit={enviar}>
+            <form id="formUsuarioAdmin" noValidate onSubmit={(evento) => void enviar(evento)}>
               <div className="row g-3">
                 <div className="col-12 col-md-6">
                   <label htmlFor="runUsuario" className="form-label fw-bold">
@@ -150,6 +226,7 @@ export default function AdminUsuarioForm() {
                     id="runUsuario"
                     placeholder="12.345.678-9"
                     value={form.run}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("run", e.target.value)}
                   />
                   <div className="invalid-feedback">
@@ -187,6 +264,7 @@ export default function AdminUsuarioForm() {
                     id="nombreUsuarioAdmin"
                     placeholder="Nombre(s)"
                     value={form.nombre}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("nombre", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa tu nombre.</div>
@@ -202,6 +280,7 @@ export default function AdminUsuarioForm() {
                     id="apellidoUsuarioAdmin"
                     placeholder="Apellido(s)"
                     value={form.apellidos}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("apellidos", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa tus apellidos.</div>
@@ -217,6 +296,7 @@ export default function AdminUsuarioForm() {
                     id="emailUsuarioAdmin"
                     placeholder="ejemplo@duoc.cl"
                     value={form.correo}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("correo", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa un correo válido.</div>
@@ -230,8 +310,9 @@ export default function AdminUsuarioForm() {
                     type="password"
                     className={"form-control" + (errores.password ? " is-invalid" : "")}
                     id="passUsuarioAdmin"
-                    placeholder={existente ? "Dejar vacío para mantener" : "Mínimo 6 caracteres"}
+                    placeholder={soloEdicion ? "No se cambia desde el panel" : "Mínimo 6 caracteres"}
                     value={form.password}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("password", e.target.value)}
                   />
                   <div className="invalid-feedback">
@@ -248,6 +329,7 @@ export default function AdminUsuarioForm() {
                     className={"form-control" + (errores.fechaNacimiento ? " is-invalid" : "")}
                     id="fechaUsuarioAdmin"
                     value={form.fechaNacimiento}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("fechaNacimiento", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa una fecha válida.</div>
@@ -262,7 +344,8 @@ export default function AdminUsuarioForm() {
                     className={"form-control" + (errores.direccion ? " is-invalid" : "")}
                     id="direccionUsuarioAdmin"
                     placeholder="Calle, número, depto/casa"
-                    value={form.direccion ?? ""}
+                    value={form.direccion}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("direccion", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa la dirección.</div>
@@ -276,6 +359,7 @@ export default function AdminUsuarioForm() {
                     className={"form-select" + (errores.regionId ? " is-invalid" : "")}
                     id="regionUsuario"
                     value={form.regionId}
+                    disabled={soloEdicion}
                     onChange={(e) => escribir("regionId", e.target.value)}
                   >
                     <option value="">Selecciona una región</option>
@@ -295,7 +379,7 @@ export default function AdminUsuarioForm() {
                   <select
                     className={"form-select" + (errores.comunaId ? " is-invalid" : "")}
                     id="comunaUsuario"
-                    disabled={!form.regionId}
+                    disabled={soloEdicion || !form.regionId}
                     value={form.comunaId}
                     onChange={(e) => escribir("comunaId", e.target.value)}
                   >
@@ -337,8 +421,8 @@ export default function AdminUsuarioForm() {
                   <Link to="/admin/usuarios" className="btn btn-outline-secondary">
                     Cancelar
                   </Link>
-                  <button type="submit" className="btn btn-contacto">
-                    Guardar Usuario
+                  <button type="submit" className="btn btn-contacto" disabled={cargando || guardando}>
+                    {guardando ? "Guardando..." : "Guardar Usuario"}
                   </button>
                 </div>
               </div>

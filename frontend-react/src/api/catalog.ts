@@ -3,6 +3,17 @@ import type { CategoriaApi, ProductoApi } from "./types";
 
 export interface ProductQuery { category?: string | number; search?: string; lowStock?: boolean; page?: number; size?: number; }
 export interface CategoryPayload { name: string; description?: string; activa?: boolean; }
+/** ProductRequest de ms-product. */
+export interface ProductPayload {
+  name: string;
+  description: string;
+  price: number;
+  category: string | number;
+  sku?: string;
+  imageUrl?: string;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+}
 
 export const catalogApi = {
   listProducts: (q: ProductQuery = {}) => {
@@ -17,6 +28,9 @@ export const catalogApi = {
   },
   listCategories: () => apiGet<CategoriaApi[]>("/api/v1/categories"),
   getProduct: (id: string) => apiGet<ProductoApi>(`/api/v1/products/${id}`),
+  createProduct: (body: ProductPayload) => apiPost<ProductoApi>("/api/v1/products", body),
+  updateProduct: (id: string, body: ProductPayload) => apiPut<ProductoApi>(`/api/v1/products/${id}`, body),
+  deleteProduct: (id: string) => apiDelete<void>(`/api/v1/products/${id}`),
   createCategory: (body: CategoryPayload) => apiPost<CategoriaApi>("/api/v1/categories", body),
   updateCategory: (id: string | number, body: CategoryPayload) => apiPut<CategoriaApi>(`/api/v1/categories/${id}`, body),
   deleteCategory: (id: string | number) => apiDelete<void>(`/api/v1/categories/${id}`),

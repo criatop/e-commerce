@@ -1,5 +1,5 @@
-import { apiGet, apiPost } from "./client";
-import type { OrdenApi, OrderStatsApi } from "./types";
+import { apiGet, apiPost, apiPut } from "./client";
+import type { OrdenApi, OrdenEstadoApi, OrderStatsApi } from "./types";
 
 export interface CheckoutItem { productId: string; quantity: number; }
 export interface CheckoutRequest {
@@ -13,4 +13,7 @@ export const ordersApi = {
   getOrder: (id: string | number) => apiGet<OrdenApi>(`/api/v1/orders/${id}`),
   listOrders: () => apiGet<OrdenApi[]>("/api/v1/orders"),
   stats: () => apiGet<OrderStatsApi>("/api/v1/orders/stats"),
+  updateStatus: (id: string, status: OrdenEstadoApi) =>
+    apiPut<OrdenApi>(`/api/v1/orders/${id}/status?status=${encodeURIComponent(status)}`),
+  cancel: (id: string) => apiPut<OrdenApi>(`/api/v1/orders/${id}/cancel`),
 };

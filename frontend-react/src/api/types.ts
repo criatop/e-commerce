@@ -25,6 +25,22 @@ export interface CategoriaApi {
   activa: boolean;
 }
 
+/** UserResponse de ms-auth, consumido solo por el panel de administración. */
+export interface UsuarioApi {
+  id: number | string;
+  run: string;
+  nombre: string;
+  apellidos?: string | null;
+  email: string;
+  fechaNacimiento?: string | null;
+  roleId: number;
+  roleName?: string | null;
+  regionId?: number | null;
+  comunaId?: number | null;
+  direccion?: string | null;
+  activo?: boolean | null;
+}
+
 export interface CartItemApi {
   productId: string;
   productName: string;
