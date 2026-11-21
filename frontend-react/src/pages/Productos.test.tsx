@@ -1,15 +1,52 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
-import { inicializarDatos } from '../data/seed';
 import Productos from './Productos';
+import type { CategoriaApi, ProductoApi } from '../api/types';
 
-beforeEach(() => { 
-  localStorage.clear(); 
-  inicializarDatos(); 
+const mocks = vi.hoisted(() => ({
+  listProducts: vi.fn(),
+  listCategories: vi.fn(),
+}));
+
+vi.mock('../api/catalog', () => ({
+  catalogApi: { listProducts: mocks.listProducts, listCategories: mocks.listCategories },
+}));
+
+const PRODUCTOS: ProductoApi[] = Array.from({ length: 17 }, (_, i) => ({
+  id: `11111111-1111-4111-8111-${String(i + 1).padStart(12, '0')}`,
+  sku: `P${String(i + 1).padStart(3, '0')}`,
+  name: i < 4 ? `Aros dorados ${i + 1}` : `Collar modelo ${i + 1}`,
+  description: 'Producto de prueba',
+  price: 10000 + i,
+  category: i % 2 === 0 ? 'cat-1' : 'cat-2',
+  imageUrl: '/img/prueba.png',
+  active: true,
+  stockQuantity: 20,
+  reservedQuantity: 0,
+  lowStockThreshold: 2,
+  available: 20,
+}));
+
+const CATEGORIAS: CategoriaApi[] = [
+  { id: 'cat-1', name: 'Aros', description: '', activa: true },
+  { id: 'cat-2', name: 'Collares', description: '', activa: true },
+];
+
+beforeEach(() => {
+  localStorage.clear();
+  mocks.listCategories.mockResolvedValue(CATEGORIAS);
+  mocks.listProducts.mockImplementation((q: { search?: string } = {}) => {
+    const searched = q.search?.toLowerCase() ?? '';
+    return Promise.resolve(
+      searched
+        ? PRODUCTOS.filter((p) => p.name.toLowerCase().includes(searched))
+        : PRODUCTOS,
+    );
+  });
 });
 
 function envolver(ui: React.ReactNode) {
@@ -23,42 +60,41 @@ function envolver(ui: React.ReactNode) {
 }
 
 describe('Productos lista', () => {
-  // 1. Prueba de Renderizado Lista Completa
-  test('renderiza todas las tarjetas', () => {
+  test('renderiza todas las tarjetas', async () => {
     render(envolver(<Productos />));
-    expect(screen.getAllByText(/añadir al carrito/i)).toHaveLength(17);
+    const botones = await screen.findAllByRole('button', { name: /añadir al carrito/i });
+    expect(botones).toHaveLength(17);
   });
 
-  // 2. Prueba de Propiedades de Tarjeta de Producto
-  test('prueba de propiedades: verifica que las tarjetas contengan sus componentes y botones', () => {
+  test('prueba de propiedades: verifica que las tarjetas contengan sus componentes y botones', async () => {
     render(envolver(<Productos />));
-    const botones = screen.getAllByRole('button', { name: /añadir al carrito/i });
+    const botones = await screen.findAllByRole('button', { name: /añadir al carrito/i });
     expect(botones.length).toBe(17);
     expect(botones[0]).toBeInTheDocument();
   });
 
-  // 3. Prueba de Evento (onChange) con escribir/filtrar
   test('escribir filtra mediante evento onChange', async () => {
     const user = userEvent.setup();
     render(envolver(<Productos />));
     const input = screen.getByPlaceholderText(/Buscar accesorio/i);
-    
+
     await user.type(input, 'aros');
     expect(input).toHaveValue('aros');
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /añadir al carrito/i })).toHaveLength(4);
+    });
   });
 
-  // 4. Prueba de Estado (useState): verifica que la lista cambie al modificar el filtro
-  test('cambia de estado al filtrar y actualiza la cantidad de productos visibles', () => {
+  test('cambia de estado al filtrar y actualiza la cantidad de productos visibles', async () => {
     render(envolver(<Productos />));
     const input = screen.getByPlaceholderText(/Buscar accesorio/i);
+    await screen.findAllByRole('button', { name: /añadir al carrito/i });
 
-    // Disparamos el cambio de estado con el evento onChange
     fireEvent.change(input, { target: { value: 'aros' } });
 
-    // Comprobamos que el estado reactivo actualizó la lista visible de 17 a un número menor
-    const tarjetasFiltradas = screen.getAllByText(/añadir al carrito/i);
-    expect(tarjetasFiltradas.length).toBeLessThan(17);
+    await waitFor(() => {
+      const tarjetasFiltradas = screen.getAllByRole('button', { name: /añadir al carrito/i });
+      expect(tarjetasFiltradas.length).toBeLessThan(17);
+    });
   });
 });
-
-

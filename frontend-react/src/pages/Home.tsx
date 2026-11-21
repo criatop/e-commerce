@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TarjetaProducto from "../components/common/TarjetaProducto";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
-import type { Producto } from "../types";
+import { catalogApi } from "../api/catalog";
+import { mapCategoria, mapProducto } from "../api/mappers";
+import type { Categoria, Producto } from "../types";
 
 const SLIDES = [
     {
@@ -65,7 +65,30 @@ function Glifo({ tipo }: { tipo: string }) {
 
 export default function Home() {
     const [indice, setIndice] = useState(0);
-    const { datos: productos } = useColeccion<Producto>(CHIC_KEYS.productos);
+    const [productos, setProductos] = useState<Producto[]>([]);
+    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let activo = true;
+        void Promise.all([catalogApi.listProducts(), catalogApi.listCategories()])
+            .then(([listaProductos, listaCategorias]) => {
+                if (!activo) return;
+                setProductos(listaProductos.map(mapProducto));
+                setCategorias(listaCategorias.map(mapCategoria));
+                setCargando(false);
+            })
+            .catch(() => {
+                if (activo) {
+                    setError("No se pudo cargar el catálogo.");
+                    setCargando(false);
+                }
+            });
+        return () => {
+            activo = false;
+        };
+    }, []);
 
     useEffect(() => {
         const temporizador = setInterval(() => {
@@ -220,14 +243,22 @@ export default function Home() {
                 </div>
                 <div className="heart">♥</div>
                 <div className="collection-grid">
-                    {COLECCIONES.map((c) => (
-                        <Link key={c.id} to={`/productos?categoria=${c.id}`} className="collection-card">
-                            <div className="glyph">
-                                <Glifo tipo={c.glifo} />
-                            </div>
-                            <div className="label">{c.label}</div>
-                        </Link>
-                    ))}
+                    {COLECCIONES.map((c) => {
+                        const categoria = categorias.find(
+                            (cat) => cat.nombre.toUpperCase() === c.label.toUpperCase(),
+                        );
+                        const destino = categoria
+                            ? `/productos?categoria=${encodeURIComponent(String(categoria.id))}`
+                            : "/productos";
+                        return (
+                            <Link key={c.id} to={destino} className="collection-card">
+                                <div className="glyph">
+                                    <Glifo tipo={c.glifo} />
+                                </div>
+                                <div className="label">{c.label}</div>
+                            </Link>
+                        );
+                    })}
                     <Link to="/productos?oferta=1" className="collection-card sale">
                         <div className="label">SALE</div>
                     </Link>
@@ -236,6 +267,8 @@ export default function Home() {
 
             <section className="container-section">
                 <h1 className="section-title">Productos destacados</h1>
+                {error && <p className="text-danger small">{error}</p>}
+                {cargando && <p className="text-muted small">Cargando productos...</p>}
                 <div className="row g-4">
                     {productos.slice(0, 4).map((p) => (
                         <TarjetaProducto key={p.codigo} producto={p} />

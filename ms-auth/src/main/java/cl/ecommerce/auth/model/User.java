@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,6 +21,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false, length = 12)
+    private String run;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -29,9 +33,26 @@ public class User {
     @Column(nullable = false)
     private String nombre;
 
+    @Column(length = 100)
+    private String apellidos;
+
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
+
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comuna_id")
+    private Comuna comuna;
+
+    @Column(length = 255)
+    private String direccion;
 
     @Builder.Default
     private Boolean activo = true;

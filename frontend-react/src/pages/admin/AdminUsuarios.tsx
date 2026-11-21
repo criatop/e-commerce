@@ -1,42 +1,80 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiDelete, apiGet } from "../../api/client";
+import { mapUsuarioAdmin } from "../../api/mappers";
+import type { UsuarioApi } from "../../api/types";
 import DataTable, { type Columna } from "../../components/common/DataTable";
 import { useAuth } from "../../context/AuthContext";
-import { useColeccion } from "../../storage/useColeccion";
-import { CHIC_KEYS } from "../../storage/claves";
 import { useTablasMaestras } from "../../hooks/useTablasMaestras";
 import { alertas } from "../../utils/alerta";
 import { formatearRun } from "../../utils/run";
+import { mensajeError } from "../../utils/error";
 import type { Usuario } from "../../types";
 
 export default function AdminUsuarios() {
-  const { datos: usuarios, guardar } = useColeccion<Usuario>(CHIC_KEYS.usuarios);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
   const { sesion } = useAuth();
   const { roles, regiones, comunas } = useTablasMaestras();
+
+  const cargar = useCallback(async () => {
+    try {
+      const lista = await apiGet<UsuarioApi[]>("/api/v1/users");
+      setUsuarios(lista.map(mapUsuarioAdmin));
+    } catch (e: unknown) {
+      setError(mensajeError(e));
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    setError("");
+    await cargar();
+  }, [cargar]);
+
+  useEffect(() => {
+    void (async () => {
+      await cargar();
+    })();
+  }, [cargar]);
 
   const nombreRol = (id: number) => roles.datos.find((r) => r.id === id)?.nombre ?? "";
   const nombreRegion = (id: number) => regiones.datos.find((r) => r.id === id)?.nombre ?? "";
   const nombreComuna = (id: number) => comunas.datos.find((c) => c.id === id)?.nombre ?? "";
 
-  async function eliminar(run: string) {
-    const usuario = usuarios.find((u) => u.run === run);
-
-    if (run === sesion?.run) {
+  async function eliminar(usuario: Usuario) {
+    const esPropio =
+      (sesion?.id !== undefined && String(usuario.id) === String(sesion.id)) ||
+      (sesion?.run !== undefined && usuario.run === sesion.run);
+    if (esPropio) {
       void alertas.aviso(
         "No puedes eliminarte",
         "Tu propia cuenta no se puede eliminar desde el panel.",
       );
       return;
     }
+    if (usuario.id === undefined) {
+      void alertas.aviso("No se puede eliminar", "El usuario no tiene un identificador de API.");
+      return;
+    }
 
     const ok = await alertas.confirmar(
       "Eliminar usuario",
-      `¿Seguro que quieres eliminar a ${usuario?.nombre} ${usuario?.apellidos}?`,
+      `¿Seguro que quieres eliminar a ${usuario.nombre} ${usuario.apellidos}?`,
       "Sí, eliminar",
     );
     if (!ok) return;
 
-    guardar(usuarios.filter((u) => u.run !== run));
-    void alertas.exito("Usuario eliminado", "La cuenta fue eliminada del sistema.");
+    try {
+      await apiDelete(`/api/v1/users/${usuario.id}`);
+      void alertas.exito("Usuario eliminado", "La cuenta fue eliminada del sistema.");
+      await recargar();
+    } catch (e: unknown) {
+      void alertas.error("No se pudo eliminar", mensajeError(e));
+    }
   }
 
   const columnas: Columna<Usuario>[] = [
@@ -63,10 +101,10 @@ export default function AdminUsuarios() {
     {
       clave: "region",
       titulo: "Región / Comuna",
-      orden: (u) => nombreRegion(u.regionId),
+      orden: (u) => nombreRegion(u.regionId ?? 0),
       render: (u) => (
         <>
-          {nombreRegion(u.regionId)} / {nombreComuna(u.comunaId)}
+          {nombreRegion(u.regionId ?? 0)} / {nombreComuna(u.comunaId ?? 0)}
         </>
       ),
     },
@@ -101,7 +139,7 @@ export default function AdminUsuarios() {
       render: (u) => (
         <>
           <Link
-            to={`/admin/usuarios/form?run=${encodeURIComponent(u.run)}`}
+            to={`/admin/usuarios/form?id=${encodeURIComponent(String(u.id ?? ""))}`}
             className="btn btn-sm btn-outline-primary me-1"
             title="Editar"
           >
@@ -111,7 +149,7 @@ export default function AdminUsuarios() {
             type="button"
             className="btn btn-sm btn-outline-danger"
             title="Eliminar"
-            onClick={() => void eliminar(u.run)}
+            onClick={() => void eliminar(u)}
           >
             <i className="bi bi-trash" />
           </button>
@@ -139,12 +177,14 @@ export default function AdminUsuarios() {
         </div>
       </div>
 
+      {error && <div className="alert alert-danger">No se pudieron cargar los usuarios: {error}</div>}
+
       <div className="card border-0 caja-admin-tabla">
         <div className="card-body p-0">
           <DataTable
             filas={usuarios}
             columnas={columnas}
-            claveFila={(u) => u.run}
+            claveFila={(u) => String(u.id ?? u.run)}
             coincide={(u, texto) =>
               `${u.nombre} ${u.apellidos}`.toLowerCase().includes(texto) ||
               u.correo.toLowerCase().includes(texto) ||
@@ -152,7 +192,7 @@ export default function AdminUsuarios() {
             }
             placeholderBusqueda="Buscar por nombre, correo o RUN..."
             porPagina={5}
-            textoVacio="No se encontraron usuarios."
+            textoVacio={cargando ? "Cargando usuarios..." : "No se encontraron usuarios."}
           />
         </div>
       </div>

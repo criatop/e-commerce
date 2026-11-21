@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -109,6 +111,109 @@ public class CartService {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();
         cartRepository.save(cart);
+    }
+
+    @Transactional
+    public CartResponse merge(String userId, List<CartItemRequest> incoming) {
+        Cart cart = getOrCreateCart(userId);
+        if (incoming == null || incoming.isEmpty()) {
+            return toResponse(cartRepository.save(cart));
+        }
+
+        List<String> ids = incoming.stream()
+                .map(CartItemRequest::productId)
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        if (ids.isEmpty()) {
+            return toResponse(cartRepository.save(cart));
+        }
+
+        Map<String, Map<String, Object>> foundById = fetchFoundProducts(ids);
+
+        for (CartItemRequest req : incoming) {
+            if (req.productId() == null || req.quantity() < 1) {
+                continue;
+            }
+            Map<String, Object> product = foundById.get(req.productId());
+            if (product == null) {
+                continue;
+            }
+            int available = asInt(product.get("available"));
+            if (available < 1) {
+                continue;
+            }
+            CartItem existing = cart.getItems().stream()
+                    .filter(i -> i.getProductId().equals(req.productId()))
+                    .findFirst()
+                    .orElse(null);
+            int currentQty = existing != null ? existing.getQuantity() : 0;
+            int mergedQty = Math.min(currentQty + req.quantity(), available);
+            if (mergedQty < 1) {
+                continue;
+            }
+            String name = Objects.toString(product.get("name"), existing != null ? existing.getProductName() : null);
+            double price = asDouble(product.get("price"), existing != null ? existing.getPrice() : 0.0);
+            if (existing != null) {
+                existing.setQuantity(mergedQty);
+                existing.setProductName(name);
+                existing.setPrice(price);
+            } else {
+                cart.getItems().add(CartItem.builder()
+                        .cart(cart)
+                        .productId(req.productId())
+                        .productName(name)
+                        .price(price)
+                        .quantity(mergedQty)
+                        .build());
+            }
+        }
+
+        return toResponse(cartRepository.save(cart));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Map<String, Object>> fetchFoundProducts(List<String> ids) {
+        try {
+            ApiResponse<Map<String, Object>> response = productClient.getBatch(Map.of("ids", ids));
+            if (response == null || response.getDatos() == null) {
+                return Map.of();
+            }
+            Object foundObj = response.getDatos().get("found");
+            if (!(foundObj instanceof List<?> foundList)) {
+                return Map.of();
+            }
+            Map<String, Map<String, Object>> byId = new HashMap<>();
+            for (Object item : foundList) {
+                if (item instanceof Map<?, ?> raw) {
+                    Map<String, Object> p = new HashMap<>();
+                    raw.forEach((k, v) -> p.put(String.valueOf(k), v));
+                    Object id = p.get("id");
+                    if (id != null) {
+                        byId.put(String.valueOf(id), p);
+                    }
+                }
+            }
+            return byId;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private int asInt(Object value) {
+        if (value instanceof Number n) return n.intValue();
+        if (value instanceof String s && !s.isBlank()) {
+            try { return Integer.parseInt(s); } catch (NumberFormatException ignored) {}
+        }
+        return 0;
+    }
+
+    private double asDouble(Object value, double fallback) {
+        if (value instanceof Number n) return n.doubleValue();
+        if (value instanceof String s && !s.isBlank()) {
+            try { return Double.parseDouble(s); } catch (NumberFormatException ignored) {}
+        }
+        return fallback;
     }
 
     private Cart getOrCreateCart(String userId) {

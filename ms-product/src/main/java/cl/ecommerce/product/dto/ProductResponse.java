@@ -21,6 +21,10 @@ public class ProductResponse {
     private UUID category;
     private String imageUrl;
     private boolean active;
+    private int stockQuantity;
+    private int reservedQuantity;
+    private int lowStockThreshold;
+    private int available;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

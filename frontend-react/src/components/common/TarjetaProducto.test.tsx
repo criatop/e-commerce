@@ -1,10 +1,10 @@
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../../context/AuthContext';
 import { CartProvider } from '../../context/CartContext';
-import { inicializarDatos } from '../../data/seed';
+import { CHIC_KEYS } from '../../storage/claves';
 import TarjetaProducto from './TarjetaProducto';
 import type { Producto } from '../../types';
 
@@ -19,9 +19,15 @@ vi.mock('../../utils/alerta', () => ({
   }
 }));
 
-beforeEach(() => { 
-  localStorage.clear(); 
-  inicializarDatos(); 
+vi.mock('../../api/catalog', () => ({
+  catalogApi: {
+    listCategories: vi.fn().mockResolvedValue([]),
+    listProducts: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+beforeEach(() => {
+  localStorage.clear();
 });
 
 function envolver(ui: React.ReactNode) {
@@ -34,39 +40,27 @@ function envolver(ui: React.ReactNode) {
   );
 }
 
-const fake: Producto = {
-  codigo: 'CH-001', 
-  nombre: 'Aros Dorados', 
-  descripcion: 'test',
-  precio: 11500, 
-  stock: 15, 
-  stockCritico: 4,
-  categoriaId: 3, 
-  imagen: 'x.jpg', 
-  estado: 'Activo'
+const producto: Producto = {
+  codigo: 'P1',
+  nombre: 'Collar Rosa',
+  descripcion: '',
+  precio: 12000,
+  stock: 5,
+  stockCritico: 1,
+  categoriaId: 1,
+  imagen: 'collar.png',
+  estado: 'Activo',
 };
 
-describe('TarjetaProducto props', () => {
-  // 1. Prueba de propiedades
-  test('muestra nombre y boton', () => {
-    render(envolver(<TarjetaProducto producto={fake} />));
-    expect(screen.getByText('Aros Dorados')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /añadir al carrito/i })).toBeInTheDocument();
-  });
-
-  // 2. Prueba de evento e inspección de contenido guardado por código
-  test('clic agrega al carrito y comprueba que se guardaron los aros', async () => {
+describe('TarjetaProducto', () => {
+  test('agrega el producto al carrito pendiente', async () => {
     const user = userEvent.setup();
-    render(envolver(<TarjetaProducto producto={fake} />));
+    render(envolver(<TarjetaProducto producto={producto} />));
 
     await user.click(screen.getByRole('button', { name: /añadir al carrito/i }));
 
-    const carrito = JSON.parse(localStorage.getItem('chic_carrito') || '[]');
-
-    // 1. Corroboramos la cantidad agregada
-    expect(carrito).toHaveLength(1);
-
-    // 2. Comprobamos que el código guardado coincida con el de los Aros Dorados ('CH-001')
-    expect(carrito[0].codigo).toBe(fake.codigo);
+    await waitFor(() => {
+      expect(localStorage.getItem(CHIC_KEYS.carritoPendiente)).toContain('P1');
+    });
   });
 });

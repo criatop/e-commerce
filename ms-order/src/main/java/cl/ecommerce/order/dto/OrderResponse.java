@@ -16,11 +16,18 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderResponse {
     private UUID id;
+    private String folio;
     private String userId;
     private OrderStatus status;
     private List<OrderItemResponse> items;
     private double totalAmount;
+    private double subtotalAmount;
+    private double shippingAmount;
     private String shippingAddress;
+    private String shippingCity;
+    private String shippingPostal;
+    private String recipientName;
+    private String recipientEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -30,10 +37,11 @@ public class OrderResponse {
     @AllArgsConstructor
     public static class OrderItemResponse {
         private UUID id;
-        private String productId;
+        private UUID productId;
+        private String sku;
         private String productName;
-        private double price;
+        private double unitPrice;
         private int quantity;
-        private double subtotal;
+        private double lineTotal;
     }
 }

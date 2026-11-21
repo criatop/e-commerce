@@ -1,34 +1,76 @@
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import TarjetaProducto from "../components/common/TarjetaProducto";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
+import { catalogApi } from "../api/catalog";
+import { mapCategoria, mapProducto } from "../api/mappers";
 import { formatearPrecio } from "../utils/formato";
-import type { Producto } from "../types";
+import type { Categoria, Producto } from "../types";
 export default function Productos() {
     const [parametros, setParametros] = useSearchParams();
-    const { datos: productos } = useColeccion<Producto>(CHIC_KEYS.productos);
-    const { datos: categorias } = useColeccion<{ id: number; nombre: string }>(CHIC_KEYS.categorias);
     const texto = parametros.get("q") ?? "";
     const categoria = parametros.get("categoria") ?? "";
     const orden = parametros.get("orden") ?? "relevancia";
     const oferta = parametros.get("oferta") === "1";
+    const [productos, setProductos] = useState<Producto[]>([]);
+    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let activo = true;
+        void catalogApi.listCategories()
+            .then((lista) => {
+                if (activo) setCategorias(lista.map(mapCategoria));
+            })
+            .catch(() => {
+                if (activo) setCategorias([]);
+            });
+        return () => { activo = false; };
+    }, []);
+
+    useEffect(() => {
+        let activo = true;
+        void catalogApi.listProducts({
+            category: categoria || undefined,
+            search: texto.trim() || undefined,
+        })
+            .then((lista) => {
+                if (!activo) return;
+                setProductos(lista.map(mapProducto));
+                setError(null);
+                setCargando(false);
+            })
+            .catch(() => {
+                if (!activo) return;
+                setProductos([]);
+                setError("No se pudo cargar el catálogo.");
+                setCargando(false);
+            });
+        return () => { activo = false; };
+    }, [texto, categoria]);
+
     function filtrar(nuevoTexto: string, nuevaCategoria: string, nuevoOrden: string) {
         const siguiente = new URLSearchParams();
         if (nuevoTexto.trim()) siguiente.set("q", nuevoTexto);
         if (nuevaCategoria) siguiente.set("categoria", nuevaCategoria);
         if (nuevoOrden && nuevoOrden !== "relevancia") siguiente.set("orden", nuevoOrden);
         if (oferta) siguiente.set("oferta", "1");
+        setCargando(true);
         setParametros(siguiente);
     }
     if (oferta) {
-        const seleccionados: Producto[] = [];
-        for (let catId = 1; catId <= 5; catId++) {
-            const prod = productos.find((p) => p.categoriaId === catId && p.estado !== "Inactivo");
-            if (prod) seleccionados.push(prod);
-        }
+        const activos = productos.filter((p) => p.estado !== "Inactivo");
+        const seleccionados = categorias.length > 0
+            ? categorias.flatMap((cat) => {
+                const prod = activos.find((p) => String(p.categoriaId) === String(cat.id));
+                return prod ? [prod] : [];
+            })
+            : activos.slice(0, 5);
         return (
             <section className="container-section">
                 <h1 className="section-title">SALE</h1>
+                {error && <p className="text-danger small">{error}</p>}
+                {cargando && <p className="text-muted small">Cargando productos...</p>}
                 <div className="row g-4">
                     {seleccionados.map((prod) => {
                         const precioOferta = Math.round(prod.precio * 0.9);
@@ -55,7 +97,7 @@ export default function Productos() {
         );
     }
     let visibles = productos.filter((p) => {
-        if (categoria && p.categoriaId !== Number(categoria)) return false;
+        if (categoria && String(p.categoriaId) !== categoria) return false;
         if (texto.trim() && !p.nombre.toLowerCase().includes(texto.trim().toLowerCase())) return false;
         if (p.estado === "Inactivo") return false;
         return true;
@@ -109,10 +151,11 @@ export default function Productos() {
                 </div>
             </div>
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <p className="mb-0 text-muted">{visibles.length} productos encontrados</p>
+                <p className="mb-0 text-muted">{cargando ? "Cargando..." : `${visibles.length} productos encontrados`}</p>
+                {error && <p className="mb-0 text-danger small">{error}</p>}
             </div>
             <div className="row g-4">
-                {visibles.length === 0 ? (
+                {visibles.length === 0 && !cargando ? (
                     <div className="col-12 text-center py-5">
                         <p className="text-muted fs-5">No se encontraron accesorios en esta categoría.</p>
                     </div>

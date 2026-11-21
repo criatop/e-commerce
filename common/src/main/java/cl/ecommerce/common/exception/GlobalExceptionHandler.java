@@ -1,5 +1,6 @@
 package cl.ecommerce.common.exception;
 
+import cl.ecommerce.common.dto.ApiResponse;
 import cl.ecommerce.common.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+/**
+ * Traduce las excepciones a respuestas HTTP con el sobre {@link ApiResponse}.
+ * El detalle que antes viajaba en {@link ErrorResponse} (error, mensaje, codigo,
+ * timestamp) se conserva dentro de {@code datos}, y se mantiene el status HTTP
+ * original.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -21,66 +28,63 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ErrorResponse.of("FORBIDDEN", "No tienes permisos para realizar esta acción", 403));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleAccessDenied(AccessDeniedException ex) {
+        return error(HttpStatus.FORBIDDEN, "FORBIDDEN", "No tienes permisos para realizar esta acción");
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of("UNAUTHORIZED", "Autenticación requerida", 401));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthentication(AuthenticationException ex) {
+        return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Autenticación requerida");
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of("NOT_FOUND", ex.getMessage(), 404));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleNotFound(NotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
     }
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of("BUSINESS_ERROR", ex.getMessage(), 400));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleBusiness(BusinessException ex) {
+        return error(HttpStatus.BAD_REQUEST, "BUSINESS_ERROR", ex.getMessage());
     }
 
     @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<ErrorResponse> handleStock(InsufficientStockException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("INSUFFICIENT_STOCK", ex.getMessage(), 409));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleStock(InsufficientStockException ex) {
+        return error(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", ex.getMessage());
     }
 
     @ExceptionHandler(PaymentFailedException.class)
-    public ResponseEntity<ErrorResponse> handlePayment(PaymentFailedException ex) {
-        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
-                .body(ErrorResponse.of("PAYMENT_FAILED", ex.getMessage(), 402));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handlePayment(PaymentFailedException ex) {
+        return error(HttpStatus.PAYMENT_REQUIRED, "PAYMENT_FAILED", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleValidation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of("VALIDATION_ERROR", message, 400));
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of("BAD_REQUEST", "Solicitud malformada o datos inválidos", 400));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleNotReadable(HttpMessageNotReadableException ex) {
+        return error(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Solicitud malformada o datos inválidos");
     }
 
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("CONFLICT", "El recurso ya existe o viola una restricción de integridad", 409));
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+        return error(HttpStatus.CONFLICT, "CONFLICT", "El recurso ya existe o viola una restricción de integridad");
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleGeneral(Exception ex) {
         log.error("Error no controlado: {}", ex.getClass().getName(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of("INTERNAL_ERROR", "Ocurrió un error interno. Intente nuevamente.", 500));
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
+                "Ocurrió un error interno. Intente nuevamente.");
+    }
+
+    private ResponseEntity<ApiResponse<ErrorResponse>> error(HttpStatus status, String code, String message) {
+        ErrorResponse detail = ErrorResponse.of(code, message, status.value());
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(detail.getMensaje(), detail));
     }
 }

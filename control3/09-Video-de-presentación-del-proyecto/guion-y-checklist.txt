@@ -1,0 +1,22 @@
+GUION DE VIDEO DE PRESENTACIÓN (15 min + 5 min de preguntas)
+======================================================================
+
+Requisito 100: todos los integrantes hablan, se muestra cada pantalla y se explica código fuente.
+ffmpeg no está disponible en este entorno, por lo que el MP4 debe grabarse con OBS,
+Zoom o la herramienta del equipo y luego colocarse en esta carpeta como:
+09-Video-de-presentación-del-proyecto.mp4
+
+MINUTO 0-2  Introducción: integrantes, asignatura y problema resuelto.
+MINUTO 2-5  Arquitectura: 8 servicios, Eureka, gateway, PostgreSQL y JWT.
+MINUTO 5-8  Demo cliente: login, catálogo, carrito, checkout y folio.
+MINUTO 8-11 Demo roles: guard ADMIN/SELLER/CUSTOMER y panel de órdenes.
+MINUTO 11-13 Código: client.ts, AuthContext.tsx, CartContext.tsx, OrderService.java.
+MINUTO 13-15 Pruebas: backend 9 módulos y frontend 22 tests; cierre.
+
+CHECKLIST
+- [ ] Todos los integrantes hablan al menos 2 minutos.
+- [ ] Se muestran las 6 pantallas del manual de usuario.
+- [ ] Se explica el código fuente compartiendo pantalla del IDE.
+- [ ] Se menciona el contrato REST y la justificación del flujo de datos.
+- [ ] Se muestra la ejecución de pruebas separadas.
+- [ ] MP4 nombrado exactamente 09-Video-de-presentación-del-proyecto.mp4

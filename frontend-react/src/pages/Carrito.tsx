@@ -8,16 +8,12 @@ import {
     type DatosEntrega,
 } from "../context/CartContext";
 import { useTablasMaestras } from "../hooks/useTablasMaestras";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
 import { formatearPrecio } from "../utils/formato";
-import type { Producto } from "../types";
 export default function Carrito() {
     const { carrito, total, cambiarCantidad, eliminar, vaciar, costoEnvio, confirmarPedido } =
         useCart();
     const { sesion } = useAuth();
     const { regiones, comunasDe } = useTablasMaestras();
-    const { datos: catalogo } = useColeccion<Producto>(CHIC_KEYS.productos);
     const [abierto, setAbierto] = useState(false);
     const [envio, setEnvio] = useState("retiro");
     const [pago, setPago] = useState("webpay");
@@ -60,18 +56,18 @@ export default function Carrito() {
                     </thead>
                     <tbody>
                         {carrito.map((item) => {
-                            const producto = catalogo.find((p) => p.codigo === item.codigo);
-                            if (!producto) return null;
+                            const idItem = item.productId ?? item.codigo;
+                            const precio = item.precio ?? 0;
                             return (
-                                <tr key={item.codigo}>
-                                    <td className="text-start">{producto.nombre}</td>
-                                    <td>{formatearPrecio(producto.precio)}</td>
+                                <tr key={idItem}>
+                                    <td className="text-start">{item.nombre ?? item.codigo}</td>
+                                    <td>{formatearPrecio(precio)}</td>
                                     <td>
                                         <div className="d-inline-flex align-items-center gap-2">
                                             <button
                                                 type="button"
                                                 className="btn btn-sm btn-outline-secondary"
-                                                onClick={() => cambiarCantidad(item.codigo, -1)}
+                                                onClick={() => void cambiarCantidad(idItem, -1)}
                                             >
                                                 &minus;
                                             </button>
@@ -79,19 +75,19 @@ export default function Carrito() {
                                             <button
                                                 type="button"
                                                 className="btn btn-sm btn-outline-secondary"
-                                                onClick={() => cambiarCantidad(item.codigo, 1)}
+                                                onClick={() => void cambiarCantidad(idItem, 1)}
                                             >
 
                                                 +
                                             </button>
                                         </div>
                                     </td>
-                                    <td>{formatearPrecio(producto.precio * item.cantidad)}</td>
+                                    <td>{formatearPrecio(precio * item.cantidad)}</td>
                                     <td>
                                         <button
                                             type="button"
                                             className="btn btn-sm btn-outline-danger"
-                                            onClick={() => eliminar(item.codigo)}
+                                            onClick={() => void eliminar(idItem)}
                                         >
                                             <i className="bi bi-trash" />
                                         </button>
@@ -291,11 +287,12 @@ export default function Carrito() {
                                 type="button"
                                 className="btn btn-accent"
                                 onClick={() => {
-                                    const folio = confirmarPedido(entrega, envio, pago);
-                                    if (folio) {
-                                        setAbierto(false);
-                                        window.location.href = `/compra-exitosa?folio=${encodeURIComponent(folio)}`;
-                                    }
+                                    void confirmarPedido(entrega, envio, pago).then((folio) => {
+                                        if (folio) {
+                                            setAbierto(false);
+                                            window.location.href = `/compra-exitosa?folio=${encodeURIComponent(folio)}`;
+                                        }
+                                    });
                                 }}
                             >
                                 Confirmar pedido

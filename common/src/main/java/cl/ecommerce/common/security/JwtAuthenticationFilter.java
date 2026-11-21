@@ -33,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (tokenProvider.validateToken(token)) {
                 String email = tokenProvider.getEmailFromToken(token);
                 String rol = tokenProvider.getRolFromToken(token);
+                Long userId = tokenProvider.getUserIdFromToken(token);
 
                 List<SimpleGrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + rol)
@@ -41,7 +42,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(email, null, authorities);
 
+                // El uid viaja como detalle de la autenticacion para no romper el principal (email)
+                auth.setDetails(userId);
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                request.setAttribute("uid", userId);
             }
         }
 

@@ -38,6 +38,18 @@ public class Product {
     @Column(name = "activo", nullable = false)
     private boolean active = true;
 
+    @Builder.Default
+    @Column(name = "stock_quantity", nullable = false)
+    private int stockQuantity = 0;
+
+    @Builder.Default
+    @Column(name = "reserved_quantity", nullable = false)
+    private int reservedQuantity = 0;
+
+    @Builder.Default
+    @Column(name = "low_stock_threshold", nullable = false)
+    private int lowStockThreshold = 5;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

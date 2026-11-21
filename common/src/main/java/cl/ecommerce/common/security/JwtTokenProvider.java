@@ -26,22 +26,38 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String email, String nombre, String rol) {
+    public String generateToken(Long userId, String email, String nombre, String rol) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
         return Jwts.builder()
                 .subject(email)
+                .claim("uid", userId)
                 .claim("nombre", nombre)
                 .claim("rol", rol)
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(key)
+                .signWith(signingKey())
                 .compact();
     }
 
     public String getEmailFromToken(String token) {
         return getClaims(token).getPayload().getSubject();
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Object uid = getClaims(token).getPayload().get("uid");
+        if (uid instanceof Number number) {
+            return number.longValue();
+        }
+        if (uid instanceof String text && !text.isBlank()) {
+            try {
+                return Long.valueOf(text);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     public String getRolFromToken(String token) {
@@ -57,9 +73,16 @@ public class JwtTokenProvider {
         }
     }
 
+    private SecretKey signingKey() {
+        if (key == null) {
+            key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+        }
+        return key;
+    }
+
     private Jws<Claims> getClaims(String token) {
         return Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(signingKey())
                 .build()
                 .parseSignedClaims(token);
     }

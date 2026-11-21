@@ -1,10 +1,29 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
+import { contentApi } from "../api/content";
+import { mapNoticia } from "../api/mappers";
 import type { Noticia } from "../types";
 
 export default function Blog() {
-    const { datos: noticias } = useColeccion<Noticia>(CHIC_KEYS.blog);
+    const [noticias, setNoticias] = useState<Noticia[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let activo = true;
+        void contentApi.listNews(0, 50)
+            .then((pagina) => {
+                if (!activo) return;
+                setNoticias(pagina.content.map(mapNoticia));
+                setCargando(false);
+            })
+            .catch(() => {
+                if (!activo) return;
+                setError("No se pudieron cargar las novedades.");
+                setCargando(false);
+            });
+        return () => { activo = false; };
+    }, []);
 
     return (
         <main className="container my-5">
@@ -14,6 +33,8 @@ export default function Blog() {
                     Descubre las últimas tendencias, tips de cuidado y noticias de Pink &amp; Pink.
                 </p>
             </div>
+            {error && <p className="text-center text-danger small">{error}</p>}
+            {cargando && <p className="text-center text-muted small">Cargando novedades...</p>}
             <div className="row g-4 justify-content-center">
                 {noticias.map((n) => (
                     <div className="col-12 col-md-6 col-lg-5" key={n.id}>

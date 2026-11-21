@@ -2,7 +2,6 @@ package cl.ecommerce.shipping.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,7 +12,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Shipment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -29,6 +27,10 @@ public class Shipment {
 
     @Column(nullable = false)
     private String city;
+
+    private String region;
+
+    private String comuna;
 
     @Column(nullable = false)
     private String postalCode;

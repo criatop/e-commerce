@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import ImagenProducto from "../components/common/ImagenProducto";
 import TarjetaProducto from "../components/common/TarjetaProducto";
+import { catalogApi } from "../api/catalog";
+import { mapProducto } from "../api/mappers";
 import { useCart } from "../context/CartContext";
 import { useTablasMaestras } from "../hooks/useTablasMaestras";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
 import { formatearPrecio } from "../utils/formato";
 import type { Producto } from "../types";
 
@@ -13,7 +13,10 @@ export default function ProductoDetalle() {
     const [parametros] = useSearchParams();
     const navigate = useNavigate();
     const codigo = parametros.get("codigo");
-    const { datos: productos } = useColeccion<Producto>(CHIC_KEYS.productos);
+    const id = parametros.get("id");
+    const [producto, setProducto] = useState<Producto | null>(null);
+    const [relacionados, setRelacionados] = useState<Producto[]>([]);
+    const [cargando, setCargando] = useState(true);
     const { nombreCategoria } = useTablasMaestras();
     const { agregar } = useCart();
     const [cantidad, setCantidad] = useState(1);
@@ -26,8 +29,52 @@ export default function ProductoDetalle() {
         }
     });
 
-    if (!codigo) return <Navigate to="/productos" replace />;
-    const producto = productos.find((p) => p.codigo === codigo);
+    useEffect(() => {
+        if (!codigo && !id) return;
+        let activo = true;
+        void Promise.resolve().then(() => { if (activo) setCargando(true); });
+        void catalogApi.listProducts()
+            .then(async (todos) => {
+                if (!activo) return;
+                const mapeados = todos.map(mapProducto);
+                let encontrado: Producto | undefined;
+                if (id) {
+                    try {
+                        encontrado = mapProducto(await catalogApi.getProduct(id));
+                    } catch {
+                        encontrado = mapeados.find((p) => p.id === id);
+                    }
+                } else {
+                    encontrado = mapeados.find((p) => p.codigo === codigo)
+                        ?? mapProducto(await catalogApi.getProduct(codigo as string));
+                }
+                if (!activo) return;
+                setProducto(encontrado ?? null);
+                setRelacionados(encontrado
+                    ? mapeados.filter((prod) =>
+                        String(prod.categoriaId) === String(encontrado?.categoriaId)
+                        && prod.codigo !== encontrado?.codigo
+                        && prod.estado === "Activo",
+                    ).slice(0, 4)
+                    : []);
+                setCargando(false);
+            })
+            .catch(() => {
+                if (activo) setCargando(false);
+            });
+        return () => { activo = false; };
+    }, [codigo, id]);
+
+    if (!codigo && !id) return <Navigate to="/productos" replace />;
+
+    if (cargando) {
+        return (
+            <div className="col-12 text-center py-5">
+                <p className="text-muted fs-5">Cargando producto...</p>
+            </div>
+        );
+    }
+
     if (!producto) {
         return (
             <div className="col-12 text-center py-5">
@@ -53,16 +100,10 @@ export default function ProductoDetalle() {
         }
     }
 
-    function comprarAhora() {
-        for (let i = 0; i < cantidad; i++) {
-            agregar(p.codigo);
-        }
+    async function comprarAhora() {
+        await agregar(p, cantidad);
         navigate("/carrito");
     }
-
-    const relacionados = productos
-        .filter((prod) => prod.categoriaId === p.categoriaId && prod.codigo !== p.codigo && prod.estado === "Activo")
-        .slice(0, 4);
 
     const envioGratis = p.precio * cantidad >= 50000;
 
@@ -72,7 +113,7 @@ export default function ProductoDetalle() {
                 <ol className="breadcrumb mb-0">
                     <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
                     <li className="breadcrumb-item"><Link to="/productos">Productos</Link></li>
-                    <li className="breadcrumb-item"><Link to={`/productos?categoria=${producto.categoriaId}`}>{nombreCategoria(producto.categoriaId)}</Link></li>
+                    <li className="breadcrumb-item"><Link to={`/productos?categoria=${encodeURIComponent(String(producto.categoriaId))}`}>{nombreCategoria(producto.categoriaId)}</Link></li>
                     <li className="breadcrumb-item active" aria-current="page">{producto.nombre}</li>
                 </ol>
             </nav>
@@ -132,7 +173,7 @@ export default function ProductoDetalle() {
                                 type="button"
                                 className="btn btn-contacto btn-lg"
                                 disabled={p.stock === 0}
-                                onClick={() => agregar(p.codigo, cantidad)}
+                                onClick={() => void agregar(p, cantidad)}
                             >
                                 <i className="bi bi-cart-plus me-2"></i>Añadir al carrito
                             </button>
@@ -140,7 +181,7 @@ export default function ProductoDetalle() {
                                 type="button"
                                 className="btn btn-accent btn-lg"
                                 disabled={p.stock === 0}
-                                onClick={comprarAhora}
+                                onClick={() => void comprarAhora()}
                             >
                                 <i className="bi bi-bag-check me-2"></i>Comprar ahora
                             </button>
@@ -163,7 +204,7 @@ export default function ProductoDetalle() {
                 <div className="mt-5">
                     <h3 className="fw-bold mb-4">Productos relacionados</h3>
                     <div className="row g-4">
-                        {relacionados.map((p) => <TarjetaProducto key={p.codigo} producto={p} />)}
+                        {relacionados.map((rel) => <TarjetaProducto key={rel.codigo} producto={rel} />)}
                     </div>
                 </div>
             )}

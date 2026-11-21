@@ -44,7 +44,7 @@ content-center"
                     <button
                         type="button"
                         className="btn btn-contacto mt-auto w-100 py-2 fw-semibold"
-                        onClick={() => agregar(producto.codigo)}
+                        onClick={() => void agregar(producto)}
                     >
                         Añadir al carrito
                     </button>

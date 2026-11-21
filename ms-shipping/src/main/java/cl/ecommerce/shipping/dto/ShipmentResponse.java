@@ -19,6 +19,8 @@ public class ShipmentResponse {
     private String userId;
     private String address;
     private String city;
+    private String region;
+    private String comuna;
     private String postalCode;
     private ShipmentStatus status;
     private String trackingNumber;

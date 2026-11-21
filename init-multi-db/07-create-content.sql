@@ -1,0 +1,14 @@
+\c content_db;
+
+CREATE TABLE IF NOT EXISTS news (
+  id UUID PRIMARY KEY, titulo VARCHAR(200) NOT NULL, resumen TEXT,
+  imagen_url VARCHAR(500), fecha DATE, slug VARCHAR(200) UNIQUE NOT NULL,
+  categoria VARCHAR(100), autor VARCHAR(150), publicada BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS news_paragraphs (
+  id UUID PRIMARY KEY, news_id UUID NOT NULL REFERENCES news(id) ON DELETE CASCADE,
+  orden INT NOT NULL, texto TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID PRIMARY KEY, nombre VARCHAR(100) NOT NULL, apellido VARCHAR(100),
+  email VARCHAR(150) NOT NULL, mensaje TEXT NOT NULL,
+  leido BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT NOW());

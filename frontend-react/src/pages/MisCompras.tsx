@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useColeccion } from "../storage/useColeccion";
-import { CHIC_KEYS } from "../storage/claves";
+import { ordersApi } from "../api/orders";
+import { mapOrden } from "../api/mappers";
 import { formatearPrecio } from "../utils/formato";
 import type { Orden } from "../types";
 
 export default function MisCompras() {
   const { sesion } = useAuth();
-  const { datos: ordenes } = useColeccion<Orden>(CHIC_KEYS.ordenes);
+  const uid = sesion?.id == null ? null : String(sesion.id);
+  const [ordenes, setOrdenes] = useState<Orden[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [seleccionado, setSeleccionado] = useState<Orden | null>(null);
+
+  useEffect(() => {
+    if (!uid) return;
+    let activo = true;
+    void Promise.resolve().then(() => { if (activo) setCargando(true); });
+    void ordersApi.myOrders(uid)
+      .then((datos) => {
+        if (!activo) return;
+        setOrdenes(datos.map(mapOrden));
+        setError(null);
+        setCargando(false);
+      })
+      .catch(() => {
+        if (!activo) return;
+        setOrdenes([]);
+        setError("No se pudo cargar tu historial de compras.");
+        setCargando(false);
+      });
+    return () => { activo = false; };
+  }, [uid]);
 
   if (!sesion) {
     return (
@@ -23,8 +46,6 @@ export default function MisCompras() {
     );
   }
 
-  const mias = ordenes.filter((o) => o.usuario?.run === sesion.run || o.entrega.nombre === `${sesion.nombre} ${sesion.apellidos}`.trim()).reverse();
-
   return (
     <section className="container-section">
       <div className="container">
@@ -33,7 +54,10 @@ export default function MisCompras() {
           <p className="text-muted">Historial de compras asociado a tu cuenta</p>
         </div>
 
-        {mias.length === 0 ? (
+        {cargando && <p className="text-center text-muted">Cargando compras...</p>}
+        {error && <p className="text-center text-danger small">{error}</p>}
+
+        {!cargando && ordenes.length === 0 ? (
           <div className="text-center p-5 bg-pink-panel rounded-4">
             <h5 className="fw-bold">Aún no tienes compras</h5>
             <Link to="/productos" className="btn btn-accent mt-2">Ir a comprar</Link>
@@ -41,7 +65,7 @@ export default function MisCompras() {
         ) : (
           <div className="row g-3">
             <div className="col-lg-6">
-              {mias.map((o) => (
+              {ordenes.map((o) => (
                 <button key={o.folio} className="card-nexo-hover p-3 w-100 text-start mb-2 border-0" onClick={() => setSeleccionado(o)}>
                   <div className="d-flex justify-content-between">
                     <div>

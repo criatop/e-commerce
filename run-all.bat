@@ -21,14 +21,11 @@ echo   Levantando microservicios...
 echo ============================================
 start "MS Auth" cmd /c "cd ms-auth && ..\mvnw spring-boot:run"
 start "MS Product" cmd /c "cd ms-product && ..\mvnw spring-boot:run"
-start "MS Inventory" cmd /c "cd ms-inventory && ..\mvnw spring-boot:run"
 start "MS Cart" cmd /c "cd ms-cart && ..\mvnw spring-boot:run"
 start "MS Order" cmd /c "cd ms-order && ..\mvnw spring-boot:run"
 start "MS Payment" cmd /c "cd ms-payment && ..\mvnw spring-boot:run"
 start "MS Shipping" cmd /c "cd ms-shipping && ..\mvnw spring-boot:run"
-start "MS Notification" cmd /c "cd ms-notification && ..\mvnw spring-boot:run"
-start "MS Review" cmd /c "cd ms-review && ..\mvnw spring-boot:run"
-start "MS Analytics" cmd /c "cd ms-analytics && ..\mvnw spring-boot:run"
+start "MS Content" cmd /c "cd ms-content && ..\mvnw spring-boot:run"
 echo.
 echo ============================================
 echo   Todos los servicios iniciados!

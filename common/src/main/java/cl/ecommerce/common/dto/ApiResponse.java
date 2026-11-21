@@ -41,4 +41,16 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+
+    /**
+     * Envoltorio de error con detalle adicional (por ejemplo el codigo de estado).
+     */
+    public static <T> ApiResponse<T> error(String mensaje, T datos) {
+        return ApiResponse.<T>builder()
+                .exitoso(false)
+                .datos(datos)
+                .mensaje(mensaje)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

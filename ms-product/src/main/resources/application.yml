@@ -10,15 +10,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-
-  kafka:
-    bootstrap-servers: localhost:9092
 
 server:
   port: 9015
@@ -39,3 +36,6 @@ management:
 jwt:
   secret: ${JWT_SECRET:EstaEsUnaLlaveSecretaMuyLargaYSeguraParaECommerce2026}
   expirationMs: 86400000
+
+internal:
+  key: ${INTERNAL_KEY:accesorios-chic-internal}
