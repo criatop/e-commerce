@@ -25,12 +25,14 @@ public class OrderItem {
     private Order order;
 
     @Column(nullable = false)
-    private String productId;
+    private UUID productId;
 
+    private String sku;
     private String productName;
-
-    private double price;
+    private double unitPrice;
 
     @Column(nullable = false)
     private int quantity;
+
+    private double lineTotal;
 }

@@ -4,11 +4,10 @@ import cl.ecommerce.common.dto.ApiResponse;
 import cl.ecommerce.common.exception.BusinessException;
 import cl.ecommerce.common.exception.NotFoundException;
 import cl.ecommerce.common.security.SecurityUtils;
-import cl.ecommerce.order.client.InventoryClient;
 import cl.ecommerce.order.client.ProductClient;
 import cl.ecommerce.order.dto.CreateOrderRequest;
-import cl.ecommerce.order.dto.InventoryReservationRequest;
 import cl.ecommerce.order.dto.OrderResponse;
+import cl.ecommerce.order.dto.OrderStatsResponse;
 import cl.ecommerce.order.model.Order;
 import cl.ecommerce.order.model.OrderItem;
 import cl.ecommerce.order.model.OrderStatus;
@@ -18,10 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,65 +28,49 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
-    private final InventoryClient inventoryClient;
+    private final FolioGenerator folioGenerator;
+
+    public String nextFolio(LocalDate date) {
+        return folioGenerator.nextFolio(date);
+    }
 
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
-        Map<String, Map<String, Object>> products = new HashMap<>();
-
         List<OrderItem> orderItems = request.items().stream()
                 .map(itemRequest -> {
                     ApiResponse<Map<String, Object>> productResponse = productClient.getProduct(itemRequest.productId());
                     if (productResponse == null || productResponse.getDatos() == null) {
                         throw new NotFoundException("Producto no encontrado: " + itemRequest.productId());
                     }
-
                     Map<String, Object> product = productResponse.getDatos();
-                    products.put(itemRequest.productId(), product);
+                    double price = ((Number) product.get("price")).doubleValue();
+                    UUID productId = UUID.fromString(itemRequest.productId());
                     return OrderItem.builder()
-                            .productId(itemRequest.productId())
+                            .productId(productId)
+                            .sku(product.get("sku") == null ? null : product.get("sku").toString())
                             .productName((String) product.get("name"))
-                            .price(((Number) product.get("price")).doubleValue())
+                            .unitPrice(price)
                             .quantity(itemRequest.quantity())
+                            .lineTotal(price * itemRequest.quantity())
                             .build();
                 })
                 .toList();
 
-        double totalAmount = orderItems.stream()
-                .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum();
+        double totalAmount = orderItems.stream().mapToDouble(OrderItem::getLineTotal).sum();
 
         Order order = Order.builder()
+                .folio(nextFolio(LocalDate.now()))
                 .userId(request.userId())
                 .status(OrderStatus.PENDING)
                 .shippingAddress(request.shippingAddress())
-                .items(orderItems)
+                .subtotalAmount(totalAmount)
+                .shippingAmount(0)
                 .totalAmount(totalAmount)
+                .items(new ArrayList<>(orderItems))
                 .build();
 
         order.getItems().forEach(item -> item.setOrder(order));
         Order savedOrder = orderRepository.save(order);
-
-        InventoryReservationRequest reservationRequest = new InventoryReservationRequest(
-                savedOrder.getId().toString(),
-                request.items().stream()
-                        .map(item -> {
-                            Map<String, Object> product = products.get(item.productId());
-                            if (product == null || product.get("sku") == null) {
-                                throw new BusinessException("Producto sin SKU valido: " + item.productId());
-                            }
-                            return new InventoryReservationRequest.Item((String) product.get("sku"), item.quantity());
-                        })
-                        .toList()
-        );
-
-        try {
-            inventoryClient.reserveStock(reservationRequest);
-        } catch (Exception e) {
-            log.error("Error al reservar stock para orden {}: {}", savedOrder.getId(), e.getMessage());
-            throw new BusinessException("No se pudo reservar el stock para la orden");
-        }
-
         return toResponse(savedOrder);
     }
 
@@ -101,68 +83,58 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByUser(String userId) {
-        return orderRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
-                .toList();
+        return orderRepository.findByUserId(userId).stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Transactional
     public OrderResponse cancelOrder(UUID id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Orden no encontrada: " + id));
-
-        SecurityUtils.requireSelfPrincipal(order.getUserId(), "ordenes");
-
-        if (order.getStatus() == OrderStatus.CANCELLED) {
-            throw new BusinessException("La orden ya esta cancelada");
-        }
-
-        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+        SecurityUtils.requireSelfOrAdmin(order.getUserId());
+        if (order.getStatus() == OrderStatus.CANCELLED) throw new BusinessException("La orden ya esta cancelada");
+        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED)
             throw new BusinessException("No se puede cancelar una orden que ya fue enviada o entregada");
-        }
-
         order.setStatus(OrderStatus.CANCELLED);
-        Order savedOrder = orderRepository.save(order);
-
-        List<InventoryReservationRequest.Item> releaseItems = savedOrder.getItems().stream()
-                .map(item -> {
-                    ApiResponse<Map<String, Object>> productResp = productClient.getProduct(item.getProductId());
-                    if (productResp == null || productResp.getDatos() == null || productResp.getDatos().get("sku") == null) {
-                        log.warn("No se pudo obtener el SKU para el producto {} al liberar stock de la orden {}", item.getProductId(), savedOrder.getId());
-                        throw new BusinessException("No se pudo determinar el SKU del producto " + item.getProductId());
-                    }
-                    String sku = (String) productResp.getDatos().get("sku");
-                    return new InventoryReservationRequest.Item(sku, item.getQuantity());
-                })
-                .toList();
-
-        try {
-            inventoryClient.releaseStock(savedOrder.getId().toString(), releaseItems);
-        } catch (Exception e) {
-            log.error("Error al liberar stock para orden {}: {}", savedOrder.getId(), e.getMessage());
-        }
-
-        return toResponse(savedOrder);
+        return toResponse(orderRepository.save(order));
     }
 
     @Transactional
     public OrderResponse updateStatus(UUID id, OrderStatus newStatus) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Orden no encontrada: " + id));
-
         validateStatusTransition(order.getStatus(), newStatus);
         order.setStatus(newStatus);
-        Order savedOrder = orderRepository.save(order);
+        return toResponse(orderRepository.save(order));
+    }
 
-        if (newStatus == OrderStatus.CONFIRMED) {
-            try {
-                inventoryClient.consumeStock(savedOrder.getId().toString());
-            } catch (Exception e) {
-                log.error("Error al consumir stock para orden {}: {}", savedOrder.getId(), e.getMessage());
+    @Transactional(readOnly = true)
+    public OrderStatsResponse getStats() {
+        List<Order> orders = orderRepository.findAll();
+        List<Order> notCancelled = orders.stream().filter(o -> o.getStatus() != OrderStatus.CANCELLED).toList();
+        double totalSales = notCancelled.stream().mapToDouble(Order::getTotalAmount).sum();
+        long totalOrders = notCancelled.size();
+        double averageTicket = totalOrders == 0 ? 0 : totalSales / totalOrders;
+        Map<String, Long> byStatus = orders.stream()
+                .collect(Collectors.groupingBy(o -> o.getStatus().name(), Collectors.counting()));
+
+        Map<UUID, OrderStatsResponse.TopProduct> top = new HashMap<>();
+        for (Order o : notCancelled) {
+            for (OrderItem item : o.getItems()) {
+                top.merge(item.getProductId(),
+                        new OrderStatsResponse.TopProduct(item.getProductId(), item.getProductName(), item.getQuantity(), item.getLineTotal()),
+                        (a, b) -> new OrderStatsResponse.TopProduct(a.productId(), a.productName(), a.quantity() + b.quantity(), a.amount() + b.amount()));
             }
         }
-
-        return toResponse(savedOrder);
+        List<OrderStatsResponse.TopProduct> topProducts = top.values().stream()
+                .sorted(Comparator.comparingLong(OrderStatsResponse.TopProduct::quantity).reversed())
+                .limit(5)
+                .toList();
+        return new OrderStatsResponse(totalSales, totalOrders, averageTicket, byStatus, topProducts);
     }
 
     private void validateStatusTransition(OrderStatus current, OrderStatus next) {
@@ -173,9 +145,7 @@ public class OrderService {
             case SHIPPED -> next == OrderStatus.DELIVERED;
             case DELIVERED, CANCELLED -> false;
         };
-        if (!valid) {
-            throw new BusinessException("Transicion de estado no valida: " + current + " -> " + next);
-        }
+        if (!valid) throw new BusinessException("Transicion de estado no valida: " + current + " -> " + next);
     }
 
     private OrderResponse toResponse(Order order) {
@@ -183,20 +153,27 @@ public class OrderService {
                 .map(item -> OrderResponse.OrderItemResponse.builder()
                         .id(item.getId())
                         .productId(item.getProductId())
+                        .sku(item.getSku())
                         .productName(item.getProductName())
-                        .price(item.getPrice())
+                        .unitPrice(item.getUnitPrice())
                         .quantity(item.getQuantity())
-                        .subtotal(item.getPrice() * item.getQuantity())
+                        .lineTotal(item.getLineTotal())
                         .build())
                 .toList();
-
         return OrderResponse.builder()
                 .id(order.getId())
+                .folio(order.getFolio())
                 .userId(order.getUserId())
                 .status(order.getStatus())
                 .items(items)
                 .totalAmount(order.getTotalAmount())
+                .subtotalAmount(order.getSubtotalAmount())
+                .shippingAmount(order.getShippingAmount())
                 .shippingAddress(order.getShippingAddress())
+                .shippingCity(order.getShippingCity())
+                .shippingPostal(order.getShippingPostal())
+                .recipientName(order.getRecipientName())
+                .recipientEmail(order.getRecipientEmail())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
