@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +78,50 @@ class ProductStockSecurityTest {
                 .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
 
         verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void unPathParamNoEvitaElFiltro() throws Exception {
+        mockMvc.perform(post("/api/v1/products/stock/reserve;x")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void unPathConPercentEncodingNoEvitaElFiltro() throws Exception {
+        mockMvc.perform(post("/api/v1/products/stock/res%65rve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void confirmYReleaseTambienExigenLaClaveInterna() throws Exception {
+        for (String operacion : new String[]{"confirm", "release"}) {
+            mockMvc.perform(post("/api/v1/products/stock/" + operacion)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+        }
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    void elCatalogoPublicoSigueSinExigirLaClaveInterna() throws Exception {
+        mockMvc.perform(get("/api/v1/products"))
+                .andExpect(status().isOk());
     }
 
     @Test

@@ -8,9 +8,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriUtils;
+import org.springframework.web.util.UrlPathHelper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,8 +25,12 @@ import java.util.Set;
  * Exige la cabecera compartida {@code X-Internal-Key} en las operaciones de stock
  * que invoca {@code ms-order} durante el checkout. Un token de cliente valido no
  * basta: sin la clave, cualquier comprador podria reservar o liberar inventario ajeno.
+ *
+ * Corre antes de la cadena de Spring Security para que ninguna variante de la ruta
+ * (path-params o percent-encoding) llegue al firewall o al handler sin la clave.
  */
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class StockInternalKeyFilter extends OncePerRequestFilter {
 
     public static final String INTERNAL_KEY_HEADER = "X-Internal-Key";
@@ -31,6 +39,12 @@ public class StockInternalKeyFilter extends OncePerRequestFilter {
             "/api/v1/products/stock/reserve",
             "/api/v1/products/stock/confirm",
             "/api/v1/products/stock/release");
+
+    /**
+     * Normaliza igual que Spring MVC: quita path-params ({@code ;x}) y decodifica
+     * percent-encoding antes de comparar.
+     */
+    private static final UrlPathHelper PATH_HELPER = crearPathHelper();
 
     private final String internalKey;
     private final ObjectMapper objectMapper;
@@ -66,11 +80,20 @@ public class StockInternalKeyFilter extends OncePerRequestFilter {
     }
 
     private String ruta(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        String contexto = request.getContextPath();
-        return contexto != null && !contexto.isEmpty() && uri.startsWith(contexto)
-                ? uri.substring(contexto.length())
-                : uri;
+        String ruta = PATH_HELPER.getPathWithinApplication(request);
+        try {
+            return UriUtils.decode(ruta, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ex) {
+            // Ruta con percent-encoding invalido: el firewall la rechaza mas adelante.
+            return ruta;
+        }
+    }
+
+    private static UrlPathHelper crearPathHelper() {
+        UrlPathHelper helper = new UrlPathHelper();
+        helper.setRemoveSemicolonContent(true);
+        helper.setUrlDecode(true);
+        return helper;
     }
 
     private boolean coincide(String recibida) {
