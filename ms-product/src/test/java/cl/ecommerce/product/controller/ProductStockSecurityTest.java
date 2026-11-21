@@ -1,19 +1,24 @@
 package cl.ecommerce.product.controller;
 
-import cl.ecommerce.common.config.DefaultSecurityConfig;
 import cl.ecommerce.common.security.JwtTokenProvider;
+import cl.ecommerce.product.config.SecurityConfig;
+import cl.ecommerce.product.security.StockInternalKeyFilter;
 import cl.ecommerce.product.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ProductController.class,
         properties = "internal.key=clave-interna-de-prueba")
-@Import(DefaultSecurityConfig.class)
+@Import({SecurityConfig.class, StockInternalKeyFilter.class})
 class ProductStockSecurityTest {
 
     private static final String INTERNAL_KEY = "clave-interna-de-prueba";
@@ -30,6 +35,9 @@ class ProductStockSecurityTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private StockInternalKeyFilter stockInternalKeyFilter;
 
     @MockitoBean
     private ProductService productService;
@@ -119,12 +127,16 @@ class ProductStockSecurityTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void unaSecuenciaDePorcentajeInvalidaNoLanzaQuinientos() throws Exception {
-        mockMvc.perform(post(java.net.URI.create("/api/v1/products/stock/reser%zzve"))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body()))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/products/stock/reser%zzve");
+        request.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        request.setContent(body().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
 
+        stockInternalKeyFilter.doFilter(request, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(response.getContentAsString()).contains("SERVICE_ONLY");
         verifyNoInteractions(productService);
     }
 

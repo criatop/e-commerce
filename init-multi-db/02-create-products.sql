@@ -1,6 +1,7 @@
 \c products_db;
 
 -- 1. ELIMINACIÓN
+DROP TABLE IF EXISTS favorites;
 DROP TABLE IF EXISTS product_images;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
@@ -38,6 +39,14 @@ CREATE TABLE product_images (
     orden      INT DEFAULT 0
 );
 
+
+CREATE TABLE favorites (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    VARCHAR(100) NOT NULL,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_favorites_user_product UNIQUE (user_id, product_id)
+);
 -- 3. INSERCIÓN DE DATOS
 INSERT INTO categories (name, description) VALUES
 ('Collares',    'Collares, gargantillas y cadenas'),
