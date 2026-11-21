@@ -1,21 +1,56 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CHIC_KEYS } from "../storage/claves";
+import { useAuth } from "../context/AuthContext";
+import { ordersApi } from "../api/orders";
+import { mapOrden } from "../api/mappers";
 import { formatearPrecio } from "../utils/formato";
 import type { Orden } from "../types";
 
 export default function CompraExitosa() {
   const [params] = useSearchParams();
   const folio = params.get("folio") || "";
+  const { sesion } = useAuth();
+  const uid = sesion?.id == null ? null : String(sesion.id);
+  const [orden, setOrden] = useState<Orden | null>(null);
+  const [cargando, setCargando] = useState(Boolean(folio));
 
-  const orden = useMemo(() => {
-    try {
-      const ordenes = JSON.parse(localStorage.getItem(CHIC_KEYS.ordenes) ?? "[]") as Orden[];
-      return ordenes.find((o) => o.folio === folio) || null;
-    } catch {
-      return null;
-    }
-  }, [folio]);
+  useEffect(() => {
+    if (!folio) return;
+    let activo = true;
+    void (async () => {
+      try {
+        let encontrada: Orden | null = null;
+        if (uid) {
+          const datos = await ordersApi.myOrders(uid);
+          encontrada = datos.map(mapOrden).find((o) => o.folio === folio) ?? null;
+        }
+        if (!encontrada) {
+          try {
+            encontrada = mapOrden(await ordersApi.getOrder(folio));
+          } catch {
+            encontrada = null;
+          }
+        }
+        if (activo) setOrden(encontrada);
+      } catch {
+        if (activo) setOrden(null);
+      } finally {
+        if (activo) setCargando(false);
+      }
+    })();
+    return () => { activo = false; };
+  }, [folio, uid]);
+
+  if (cargando) {
+    return (
+      <section className="container-section">
+        <div className="container text-center">
+          <h1 className="section-title">Compra realizada</h1>
+          <p className="text-muted">Cargando tu boleta...</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!orden || !orden.items) {
     return (

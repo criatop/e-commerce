@@ -1,12 +1,36 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
+import { contentApi } from "../api/content";
+import { mapNoticia } from "../api/mappers";
 import type { Noticia } from "../types";
 
 export default function BlogDetalle() {
     const { slug } = useParams();
-    const { datos: noticias } = useColeccion<Noticia>(CHIC_KEYS.blog);
-    const noticia = noticias.find((n) => n.slug === slug);
+    const [noticia, setNoticia] = useState<Noticia | null>(null);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        if (!slug) return;
+        let activo = true;
+        void contentApi.getNews(slug)
+            .then((datos) => {
+                if (!activo) return;
+                setNoticia(mapNoticia(datos));
+                setCargando(false);
+            })
+            .catch(() => {
+                if (activo) setCargando(false);
+            });
+        return () => { activo = false; };
+    }, [slug]);
+
+    if (cargando) {
+        return (
+            <main className="container my-5 text-center">
+                <p className="text-muted">Cargando artículo...</p>
+            </main>
+        );
+    }
 
     if (!noticia) {
         return (

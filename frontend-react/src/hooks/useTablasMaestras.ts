@@ -1,20 +1,44 @@
-import { useColeccion } from "../storage/useColeccion";
-import { CHIC_KEYS } from "../storage/claves";
+import { useEffect, useState } from "react";
+import { catalogApi } from "../api/catalog";
+import { mapCategoria } from "../api/mappers";
+import { COMUNAS, REGIONES, ROLES } from "../data/seed";
 import type { Categoria, Comuna, Region, Rol } from "../types";
 
+interface ColeccionUI<T> {
+    datos: T[];
+}
+
 export function useTablasMaestras() {
-  const categorias = useColeccion<Categoria>(CHIC_KEYS.categorias);
-  const regiones = useColeccion<Region>(CHIC_KEYS.regiones);
-  const comunas = useColeccion<Comuna>(CHIC_KEYS.comunas);
-  const roles = useColeccion<Rol>(CHIC_KEYS.roles);
+    const [categorias, setCategorias] = useState<Categoria[]>([]);
 
-  function nombreCategoria(id: number): string {
-    return categorias.datos.find((c) => c.id === id)?.nombre ?? "";
-  }
+    useEffect(() => {
+        let activo = true;
+        void catalogApi
+            .listCategories()
+            .then((lista) => {
+                if (activo) setCategorias(lista.map(mapCategoria));
+            })
+            .catch(() => {
+                if (activo) setCategorias([]);
+            });
+        return () => {
+            activo = false;
+        };
+    }, []);
 
-  function comunasDe(regionId: number): Comuna[] {
-    return comunas.datos.filter((c) => c.regionId === regionId);
-  }
+    const categoriasUI: ColeccionUI<Categoria> = { datos: categorias };
+    const regiones: ColeccionUI<Region> = { datos: REGIONES };
+    const comunas: ColeccionUI<Comuna> = { datos: COMUNAS };
+    const roles: ColeccionUI<Rol> = { datos: ROLES };
 
-  return { categorias, regiones, comunas, roles, nombreCategoria, comunasDe };
+    function nombreCategoria(id: number | string | null | undefined): string {
+        if (id === null || id === undefined || id === "") return "";
+        return categorias.find((c) => String(c.id) === String(id))?.nombre ?? "";
+    }
+
+    function comunasDe(regionId: number): Comuna[] {
+        return COMUNAS.filter((c) => c.regionId === regionId);
+    }
+
+    return { categorias: categoriasUI, regiones, comunas, roles, nombreCategoria, comunasDe };
 }

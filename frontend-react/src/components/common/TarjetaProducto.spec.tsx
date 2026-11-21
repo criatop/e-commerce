@@ -1,12 +1,22 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import TarjetaProducto from "./TarjetaProducto";
+import { AuthProvider } from "../../context/AuthContext";
 import { CartProvider } from "../../context/CartContext";
 import { CHIC_KEYS } from "../../storage/claves";
 import { alertas } from "../../utils/alerta";
 import type { Producto } from "../../types";
+
+vi.mock("../../api/catalog", () => ({
+  catalogApi: {
+    listCategories: vi.fn().mockResolvedValue([
+      { id: "1", name: "Collares", description: "", activa: true },
+    ]),
+    listProducts: vi.fn().mockResolvedValue([]),
+  },
+}));
 
 const producto: Producto = {
   codigo: "P1",
@@ -22,26 +32,23 @@ const producto: Producto = {
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>
-    <CartProvider>{children}</CartProvider>
+    <AuthProvider>
+      <CartProvider>{children}</CartProvider>
+    </AuthProvider>
   </MemoryRouter>
 );
 
 describe("TarjetaProducto", () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem(CHIC_KEYS.productos, JSON.stringify([producto]));
-    localStorage.setItem(
-      CHIC_KEYS.categorias,
-      JSON.stringify([{ id: 1, nombre: "Collares", descripcion: "" }]),
-    );
     vi.spyOn(alertas, "exito").mockResolvedValue(undefined as never);
   });
 
-  it("muestra el nombre, el precio formateado y la categoría", () => {
+  it("muestra el nombre, el precio formateado y la categoría", async () => {
     render(<TarjetaProducto producto={producto} />, { wrapper });
     expect(screen.getByText("Collar Rosa")).toBeInTheDocument();
     expect(screen.getByText("$12.000")).toBeInTheDocument();
-    expect(screen.getByText("Collares")).toBeInTheDocument();
+    expect(await screen.findByText("Collares")).toBeInTheDocument();
   });
 
   it("enlaza al detalle del producto con su código", () => {
@@ -53,15 +60,18 @@ describe("TarjetaProducto", () => {
     );
   });
 
-  it("añade el producto al carrito al hacer clic en el botón", () => {
+  it("añade el producto al carrito pendiente al hacer clic en el botón", async () => {
     render(<TarjetaProducto producto={producto} />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: /añadir al carrito/i }));
 
-    const carrito = JSON.parse(
-      localStorage.getItem(CHIC_KEYS.carrito) ?? "[]",
-    ) as Array<{ codigo: string; cantidad: number }>;
-
-    expect(carrito).toEqual([{ codigo: "P1", cantidad: 1 }]);
+    await waitFor(() => {
+      const carrito = JSON.parse(
+        localStorage.getItem(CHIC_KEYS.carritoPendiente) ?? "[]",
+      ) as Array<{ productId: string; cantidad: number }>;
+      expect(carrito).toEqual([
+        { productId: "P1", codigo: "P1", cantidad: 1, nombre: "Collar Rosa", precio: 12000, stock: 5, imagen: "collar.png" },
+      ]);
+    });
     expect(alertas.exito).toHaveBeenCalled();
   });
 });

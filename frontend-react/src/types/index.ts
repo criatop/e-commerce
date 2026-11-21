@@ -73,6 +73,10 @@ export interface ItemCarrito {
   codigo: string;
   productId?: string;
   cantidad: number;
+  nombre?: string;
+  precio?: number;
+  stock?: number;
+  imagen?: string;
 }
 
 export interface Noticia {

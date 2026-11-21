@@ -29,7 +29,7 @@ content-center"
                 <div className="card-body d-flex flex-column p-3 bg-white">
                     <div>
                         <span className="badge badge-categoria mb-2">
-                            {nombreCategoria(Number(producto.categoriaId))}
+                            {nombreCategoria(producto.categoriaId)}
                         </span>
                         <Link to={`/producto-detalle?codigo=${encodeURIComponent(producto.codigo)}`}>
                             <h5 className="card-title text-truncate fw-bold mb-1 text-dark">
@@ -44,7 +44,7 @@ content-center"
                     <button
                         type="button"
                         className="btn btn-contacto mt-auto w-100 py-2 fw-semibold"
-                        onClick={() => agregar(producto.codigo)}
+                        onClick={() => void agregar(producto)}
                     >
                         Añadir al carrito
                     </button>

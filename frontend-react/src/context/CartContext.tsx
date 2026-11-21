@@ -1,195 +1,314 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { cartApi, type CartItemRequest } from "../api/cart";
+import { ordersApi } from "../api/orders";
+import type { CartItemApi } from "../api/types";
 import { CHIC_KEYS } from "../storage/claves";
 import { alertas } from "../utils/alerta";
 import { formatearPrecio } from "../utils/formato";
-import type { ItemCarrito, ItemOrden, Orden, Producto } from "../types";
+import type { ItemCarrito, Producto } from "../types";
+import { useAuth } from "./AuthContext";
 
 export const METODOS_ENVIO = [
-  { valor: "retiro", titulo: "Retiro en tienda", detalle: "Sin costo · Retiras en nuestra tienda", costo: 0 },
-  { valor: "estandar", titulo: "Despacho a domicilio estándar", detalle: "3 a 5 días hábiles", costo: 2990 },
-  { valor: "express", titulo: "Despacho express", detalle: "1 a 2 días hábiles", costo: 4990 },
+    { valor: "retiro", titulo: "Retiro en tienda", detalle: "Sin costo · Retiras en nuestra tienda", costo: 0 },
+    { valor: "estandar", titulo: "Despacho a domicilio estándar", detalle: "3 a 5 días hábiles", costo: 2990 },
+    { valor: "express", titulo: "Despacho express", detalle: "1 a 2 días hábiles", costo: 4990 },
 ];
 
 export const METODOS_PAGO = [
-  { valor: "webpay", titulo: "Tarjeta de crédito / débito", detalle: "Pago seguro a través de Webpay" },
-  { valor: "transferencia", titulo: "Transferencia bancaria", detalle: "Te enviamos los datos por correo" },
-  { valor: "contraentrega", titulo: "Pago contra entrega", detalle: "Paga al recibir tu pedido" },
-  { valor: "paypal", titulo: "PayPal", detalle: "Pago internacional con PayPal" },
+    { valor: "webpay", titulo: "Tarjeta de crédito / débito", detalle: "Pago seguro a través de Webpay" },
+    { valor: "transferencia", titulo: "Transferencia bancaria", detalle: "Te enviamos los datos por correo" },
+    { valor: "contraentrega", titulo: "Pago contra entrega", detalle: "Paga al recibir tu pedido" },
+    { valor: "paypal", titulo: "PayPal", detalle: "Pago internacional con PayPal" },
 ];
 
 export interface DatosEntrega {
-  nombre: string;
-  direccion: string;
-  region: string;
-  comuna: string;
-  telefono: string;
+    nombre: string;
+    direccion: string;
+    region: string;
+    comuna: string;
+    telefono: string;
 }
 
 interface CartContextValue {
-  carrito: ItemCarrito[];
-  totalItems: number;
-  total: number;
-  agregar: (codigo: string, cantidad?: number) => void;
-  cambiarCantidad: (codigo: string, delta: number) => void;
-  eliminar: (codigo: string) => void;
-  vaciar: () => void;
-  costoEnvio: (metodo: string) => number;
-  confirmarPedido: (entrega: DatosEntrega, metodoEnvio: string, metodoPago: string) => string | null;
+    carrito: ItemCarrito[];
+    totalItems: number;
+    total: number;
+    cargando: boolean;
+    error: string | null;
+    agregar: (producto: Producto, cantidad?: number) => Promise<void>;
+    cambiarCantidad: (productId: string, delta: number) => Promise<void>;
+    eliminar: (productId: string) => Promise<void>;
+    vaciar: () => Promise<void>;
+    costoEnvio: (metodo: string) => number;
+    confirmarPedido: (entrega: DatosEntrega, metodoEnvio: string, metodoPago: string) => Promise<string | null>;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-function leerProductos(): Producto[] {
-  return JSON.parse(localStorage.getItem(CHIC_KEYS.productos) ?? "[]") as Producto[];
+function texto(valor: unknown): string | undefined {
+    return typeof valor === "string" && valor !== "" ? valor : undefined;
+}
+
+function numero(valor: unknown): number | undefined {
+    return typeof valor === "number" && Number.isFinite(valor) ? valor : undefined;
+}
+
+function leerCarritoLocal(): ItemCarrito[] {
+    try {
+        const contenido = localStorage.getItem(CHIC_KEYS.carritoPendiente);
+        if (!contenido) return [];
+        const parseado: unknown = JSON.parse(contenido);
+        if (!Array.isArray(parseado)) return [];
+        return parseado.flatMap((entrada): ItemCarrito[] => {
+            if (typeof entrada !== "object" || entrada === null) return [];
+            const fila = entrada as Record<string, unknown>;
+            const productId = texto(fila.productId) ?? texto(fila.codigo);
+            const cantidad = numero(fila.cantidad);
+            if (!productId || !cantidad || cantidad < 1) return [];
+            return [{
+                productId,
+                codigo: texto(fila.codigo) ?? productId,
+                cantidad,
+                nombre: texto(fila.nombre),
+                precio: numero(fila.precio),
+                stock: numero(fila.stock),
+                imagen: texto(fila.imagen),
+            }];
+        });
+    } catch {
+        return [];
+    }
+}
+
+function persistirCarritoLocal(items: ItemCarrito[]) {
+    localStorage.setItem(CHIC_KEYS.carritoPendiente, JSON.stringify(items));
+}
+
+function deItemApi(item: CartItemApi): ItemCarrito {
+    return {
+        productId: item.productId,
+        codigo: item.productId,
+        cantidad: item.quantity,
+        nombre: item.productName,
+        precio: item.price,
+    };
+}
+
+function mensajeError(error: unknown): string {
+    return error instanceof Error ? error.message : "No se pudo completar la operación.";
+}
+
+function idDe(item: ItemCarrito): string {
+    return item.productId ?? item.codigo;
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [carrito, setCarrito] = useState<ItemCarrito[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(CHIC_KEYS.carrito) ?? "[]") as ItemCarrito[];
-    } catch {
-      return [];
-    }
-  });
+    const { sesion } = useAuth();
+    const uid = sesion?.id == null ? null : String(sesion.id);
+    const [carrito, setCarrito] = useState<ItemCarrito[]>(leerCarritoLocal);
+    const [cargando, setCargando] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const procesandoRef = useRef<string | null>(null);
 
-  function persistir(nuevo: ItemCarrito[]) {
-    localStorage.setItem(CHIC_KEYS.carrito, JSON.stringify(nuevo));
-    setCarrito(nuevo);
-  }
+    useEffect(() => {
+        if (!uid) {
+            procesandoRef.current = null;
+            void Promise.resolve().then(() => {
+                setError(null);
+                setCarrito(leerCarritoLocal());
+            });
+            return;
+        }
+        if (procesandoRef.current === uid) return;
+        procesandoRef.current = uid;
 
-  const totalItems = carrito.reduce((acc, i) => acc + i.cantidad, 0);
+        let cancelado = false;
+        void (async () => {
+            setCargando(true);
+            setError(null);
+            try {
+                const pendientes = leerCarritoLocal();
+                if (pendientes.length > 0) {
+                    const fusion: { productId: string; cantidad: number }[] = pendientes.map((item) => ({
+                        productId: idDe(item),
+                        cantidad: item.cantidad,
+                    }));
+                    await cartApi.merge(uid, fusion as unknown as CartItemRequest[]);
+                }
+                const carritoApi = await cartApi.getCart(uid);
+                if (!cancelado) setCarrito(carritoApi.items.map(deItemApi));
+            } catch (e) {
+                if (!cancelado) {
+                    setError(mensajeError(e));
+                    setCarrito(leerCarritoLocal());
+                }
+            } finally {
+                localStorage.removeItem(CHIC_KEYS.carritoPendiente);
+                if (!cancelado) setCargando(false);
+            }
+        })();
 
-  const total = carrito.reduce((acc, item) => {
-    const producto = leerProductos().find((p) => p.codigo === item.codigo);
-    return producto ? acc + producto.precio * item.cantidad : acc;
-  }, 0);
+        return () => {
+            cancelado = true;
+        };
+    }, [uid]);
 
-  function agregar(codigo: string, cantidad = 1) {
-    const producto = leerProductos().find((p) => p.codigo === codigo);
-    if (!producto) return;
+    const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+    const total = carrito.reduce((acc, item) => acc + (item.precio ?? 0) * item.cantidad, 0);
 
-    const existente = carrito.find((i) => i.codigo === codigo);
-    if (existente) {
-      if (existente.cantidad + cantidad > producto.stock) {
-        void alertas.aviso("Sin stock", "No hay más unidades disponibles de este accesorio.");
-        return;
-      }
-      persistir(
-        carrito.map((i) =>
-          i.codigo === codigo ? { ...i, cantidad: i.cantidad + cantidad } : i,
-        ),
-      );
-    } else {
-      persistir([...carrito, { codigo, cantidad }]);
-    }
+    async function agregar(producto: Producto, cantidad = 1) {
+        const productId = producto.id ?? producto.codigo;
+        if (!productId || cantidad < 1) return;
 
-    void alertas.exito("¡Agregado!", `${producto.nombre} se añadió a tu carrito.`);
-  }
+        const existente = carrito.find((item) => idDe(item) === productId);
+        const nuevaCantidad = (existente?.cantidad ?? 0) + cantidad;
+        if (producto.stock > 0 && nuevaCantidad > producto.stock) {
+            void alertas.aviso("Sin stock", "No hay más unidades disponibles de este accesorio.");
+            return;
+        }
 
-  function cambiarCantidad(codigo: string, delta: number) {
-    const producto = leerProductos().find((p) => p.codigo === codigo);
-    const item = carrito.find((i) => i.codigo === codigo);
-    if (!item) return;
-
-    const nuevaCantidad = item.cantidad + delta;
-    if (nuevaCantidad < 1) {
-      eliminar(codigo);
-      return;
-    }
-    const tope = producto ? Math.min(nuevaCantidad, producto.stock) : nuevaCantidad;
-    persistir(carrito.map((i) => (i.codigo === codigo ? { ...i, cantidad: tope } : i)));
-  }
-
-  function eliminar(codigo: string) {
-    persistir(carrito.filter((i) => i.codigo !== codigo));
-  }
-
-  async function vaciar() {
-    const ok = await alertas.confirmar("¿Vaciar carrito?", "Se eliminarán todos los accesorios de tu carrito.", "Sí, vaciar");
-    if (ok) persistir([]);
-  }
-
-  function costoEnvio(metodo: string): number {
-    return METODOS_ENVIO.find((m) => m.valor === metodo)?.costo ?? 0;
-  }
-
-  function confirmarPedido(entrega: DatosEntrega, metodoEnvio: string, metodoPago: string): string | null {
-    if (carrito.length === 0) return null;
-
-    const esRetiro = metodoEnvio === "retiro";
-
-    if (!entrega.nombre.trim()) { void alertas.aviso("Falta tu nombre", "Ingresa tu nombre completo para continuar."); return null; }
-    if (!metodoEnvio) { void alertas.aviso("Elige envío", "Selecciona un método de envío."); return null; }
-    if (!esRetiro && !entrega.direccion.trim()) { void alertas.aviso("Falta la dirección", "Ingresa la dirección de despacho."); return null; }
-    if (!esRetiro && !entrega.region) { void alertas.aviso("Falta la región", "Selecciona tu región."); return null; }
-    if (!esRetiro && !entrega.comuna) { void alertas.aviso("Falta la comuna", "Selecciona tu comuna."); return null; }
-    if (!metodoPago) { void alertas.aviso("Elige pago", "Selecciona un método de pago."); return null; }
-
-    const productos = leerProductos();
-    const items: ItemOrden[] = [];
-    for (const item of carrito) {
-      const producto = productos.find((p) => p.codigo === item.codigo);
-      if (!producto) continue;
-      items.push({
-        codigo: producto.codigo,
-        nombre: producto.nombre,
-        precio: producto.precio,
-        cantidad: item.cantidad,
-        subtotal: producto.precio * item.cantidad,
-      });
+        try {
+            if (uid) {
+                const carritoApi = await cartApi.addItem(uid, productId, cantidad);
+                setCarrito(carritoApi.items.map(deItemApi));
+            } else {
+                const nuevo: ItemCarrito[] = existente
+                    ? carrito.map((item) => idDe(item) === productId ? { ...item, cantidad: nuevaCantidad } : item)
+                    : [...carrito, {
+                        productId,
+                        codigo: producto.codigo,
+                        cantidad,
+                        nombre: producto.nombre,
+                        precio: producto.precio,
+                        stock: producto.stock,
+                        imagen: producto.imagen,
+                    }];
+                persistirCarritoLocal(nuevo);
+                setCarrito(nuevo);
+            }
+            void alertas.exito("¡Agregado!", `${producto.nombre} se añadió a tu carrito.`);
+        } catch (e) {
+            setError(mensajeError(e));
+            void alertas.error("No se pudo agregar", mensajeError(e));
+        }
     }
 
-    const envioCosto = costoEnvio(metodoEnvio);
-    const ordenes = JSON.parse(localStorage.getItem(CHIC_KEYS.ordenes) ?? "[]") as Orden[];
-    const folio = "PP-" + String(ordenes.length + 1).padStart(4, "0");
+    async function cambiarCantidad(productId: string, delta: number) {
+        const item = carrito.find((entrada) => idDe(entrada) === productId);
+        if (!item) return;
+        const nuevaCantidad = item.cantidad + delta;
+        if (nuevaCantidad < 1) {
+            await eliminar(productId);
+            return;
+        }
+        try {
+            if (uid) {
+                const carritoApi = await cartApi.updateItem(uid, productId, nuevaCantidad);
+                setCarrito(carritoApi.items.map(deItemApi));
+            } else {
+                const nuevo = carrito.map((entrada) =>
+                    idDe(entrada) === productId ? { ...entrada, cantidad: nuevaCantidad } : entrada,
+                );
+                persistirCarritoLocal(nuevo);
+                setCarrito(nuevo);
+            }
+        } catch (e) {
+            setError(mensajeError(e));
+            void alertas.error("No se pudo actualizar", mensajeError(e));
+        }
+    }
 
-    let sesionObj: unknown = null;
-    try { sesionObj = JSON.parse(localStorage.getItem(CHIC_KEYS.sesion) ?? "null"); } catch { /* ignore */ }
-    const s = (sesionObj && typeof sesionObj === "object") ? (sesionObj as Record<string, unknown>) : null;
+    async function eliminar(productId: string) {
+        try {
+            if (uid) {
+                await cartApi.removeItem(uid, productId);
+                const carritoApi = await cartApi.getCart(uid);
+                setCarrito(carritoApi.items.map(deItemApi));
+            } else {
+                const nuevo = carrito.filter((item) => idDe(item) !== productId);
+                persistirCarritoLocal(nuevo);
+                setCarrito(nuevo);
+            }
+        } catch (e) {
+            setError(mensajeError(e));
+            void alertas.error("No se pudo eliminar", mensajeError(e));
+        }
+    }
 
-    const pedido: Orden = {
-      folio,
-      fecha: new Date().toISOString(),
-      items,
-      subtotal: total,
-      envio: { metodo: metodoEnvio, costo: envioCosto },
-      pago: { metodo: metodoPago },
-      entrega: {
-        nombre: entrega.nombre.trim(),
-        direccion: esRetiro ? "Retiro en tienda" : entrega.direccion.trim(),
-        region: esRetiro ? "Región Metropolitana" : entrega.region,
-        comuna: esRetiro ? "Santiago" : entrega.comuna,
-        telefono: entrega.telefono.trim(),
-      },
-      total: total + envioCosto,
-      estado: "Pendiente",
-      usuario: s ? { run: String(s.run ?? ""), correo: String(s.correo ?? ""), nombre: String(s.nombre ?? ""), apellidos: String(s.apellidos ?? "") } : undefined,
+    async function vaciar() {
+        const ok = await alertas.confirmar("¿Vaciar carrito?", "Se eliminarán todos los accesorios de tu carrito.", "Sí, vaciar");
+        if (!ok) return;
+        try {
+            if (uid) await cartApi.clear(uid);
+            localStorage.removeItem(CHIC_KEYS.carritoPendiente);
+            setCarrito([]);
+        } catch (e) {
+            setError(mensajeError(e));
+            void alertas.error("No se pudo vaciar", mensajeError(e));
+        }
+    }
+
+    function costoEnvio(metodo: string): number {
+        return METODOS_ENVIO.find((m) => m.valor === metodo)?.costo ?? 0;
+    }
+
+    async function confirmarPedido(
+        entrega: DatosEntrega,
+        metodoEnvio: string,
+        metodoPago: string,
+    ): Promise<string | null> {
+        if (!uid) {
+            void alertas.aviso("Inicia sesión", "Necesitas iniciar sesión para finalizar la compra.");
+            return null;
+        }
+        if (carrito.length === 0) return null;
+
+        const esRetiro = metodoEnvio === "retiro";
+        if (!entrega.nombre.trim()) { void alertas.aviso("Falta tu nombre", "Ingresa tu nombre completo para continuar."); return null; }
+        if (!metodoEnvio) { void alertas.aviso("Elige envío", "Selecciona un método de envío."); return null; }
+        if (!esRetiro && !entrega.direccion.trim()) { void alertas.aviso("Falta la dirección", "Ingresa la dirección de despacho."); return null; }
+        if (!esRetiro && !entrega.region) { void alertas.aviso("Falta la región", "Selecciona tu región."); return null; }
+        if (!esRetiro && !entrega.comuna) { void alertas.aviso("Falta la comuna", "Selecciona tu comuna."); return null; }
+        if (!metodoPago) { void alertas.aviso("Elige pago", "Selecciona un método de pago."); return null; }
+
+        try {
+            const orden = await ordersApi.checkout({
+                shippingAddress: esRetiro ? "Retiro en tienda" : entrega.direccion.trim(),
+                shippingRegion: esRetiro ? "Región Metropolitana" : entrega.region,
+                shippingComuna: esRetiro ? "Santiago" : entrega.comuna,
+                shippingPhone: entrega.telefono.trim(),
+                paymentMethod: metodoPago,
+                items: carrito.map((item) => ({
+                    productId: idDe(item),
+                    quantity: item.cantidad,
+                })),
+            });
+            await cartApi.clear(uid);
+            localStorage.removeItem(CHIC_KEYS.carritoPendiente);
+            setCarrito([]);
+            void alertas.exitoHtml(
+                "¡Gracias por tu compra!",
+                `Tu pedido <strong>${orden.folio}</strong> ha sido registrado por ${formatearPrecio(orden.totalAmount)}.<br>Te contactaremos pronto para coordinar la entrega.`,
+            );
+            return orden.folio;
+        } catch (e) {
+            setError(mensajeError(e));
+            void alertas.error("No se pudo confirmar", mensajeError(e));
+            return null;
+        }
+    }
+
+    const valor: CartContextValue = {
+        carrito, totalItems, total, cargando, error,
+        agregar, cambiarCantidad, eliminar, vaciar, costoEnvio, confirmarPedido,
     };
 
-    ordenes.push(pedido);
-    localStorage.setItem(CHIC_KEYS.ordenes, JSON.stringify(ordenes));
-    persistir([]);
-
-    void alertas.exitoHtml(
-      "¡Gracias por tu compra!",
-      `Tu pedido <strong>${folio}</strong> ha sido registrado por ${formatearPrecio(pedido.total)} (envío: ${
-        envioCosto === 0 ? "Gratis" : formatearPrecio(envioCosto)
-      }).<br>Te contactaremos pronto para coordinar la entrega.`,
-    );
-
-    return folio;
-  }
-
-  const valor: CartContextValue = {
-    carrito, totalItems, total, agregar, cambiarCantidad, eliminar, vaciar, costoEnvio, confirmarPedido,
-  };
-
-  return <CartContext.Provider value={valor}>{children}</CartContext.Provider>;
+    return <CartContext.Provider value={valor}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart debe usarse dentro de CartProvider");
-  return ctx;
+    const ctx = useContext(CartContext);
+    if (!ctx) throw new Error("useCart debe usarse dentro de CartProvider");
+    return ctx;
 }

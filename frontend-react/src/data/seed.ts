@@ -1,23 +1,12 @@
-import { CHIC_KEYS, CHIC_VERSION } from "../storage/claves";
-import type {
-  Categoria, Comuna, Noticia, Producto, Region, Rol, Usuario,
-} from "../types";
+import type { Comuna, Region, Rol } from "../types";
 
-const ROLES: Rol[] = [
+export const ROLES: Rol[] = [
   { id: 1, nombre: "Admin" },
   { id: 2, nombre: "Vendedor" },
   { id: 3, nombre: "Cliente" },
 ];
 
-const CATEGORIAS: Categoria[] = [
-  { id: 1, nombre: "Collares", descripcion: "Collares, gargantillas y cadenas" },
-  { id: 2, nombre: "Pulseras", descripcion: "Pulseras y brazaletes" },
-  { id: 3, nombre: "Aros", descripcion: "Aros y pendientes" },
-  { id: 4, nombre: "Diademas", descripcion: "Diademas y cintillos para todo estilo" },
-  { id: 5, nombre: "Accesorios", descripcion: "Llaveros, cintillos y más" },
-];
-
-const REGIONES: Region[] = [
+export const REGIONES: Region[] = [
   { id: 1, nombre: "Región Metropolitana" },
   { id: 2, nombre: "Valparaíso" },
   { id: 3, nombre: "Biobío" },
@@ -36,7 +25,7 @@ const REGIONES: Region[] = [
   { id: 16, nombre: "Magallanes y de la Antártica Chilena" },
 ];
 
-const COMUNAS: Comuna[] = [
+export const COMUNAS: Comuna[] = [
   // Region 1
   { id: 1, regionId: 1, nombre: "Santiago" }, { id: 2, regionId: 1, nombre: "Providencia" },
   { id: 3, regionId: 1, nombre: "Maipú" }, { id: 8, regionId: 1, nombre: "Las Condes" },
@@ -231,103 +220,3 @@ const COMUNAS: Comuna[] = [
   { id: 344, regionId: 16, nombre: "Timaukel" }, { id: 345, regionId: 16, nombre: "Torres del Paine" }
 ];
 
-const USUARIOS: Usuario[] = [
-  { run: "111111111", nombre: "Admin", apellidos: "Pink", correo: "admin@gmail.com", password: "admin123", fechaNacimiento: "1990-01-01", rolId: 1, regionId: 1, comunaId: 1, direccion: "Av. Principal 123", estado: "Activo" },
-  { run: "222222222", nombre: "Vendedor", apellidos: "Pink", correo: "vendedor@gmail.com", password: "vend1234", fechaNacimiento: "1992-05-14", rolId: 2, regionId: 1, comunaId: 2, direccion: "Calle Venta 456", estado: "Activo" },
-  { run: "333333333", nombre: "Camila", apellidos: "Rosales", correo: "camila@gmail.com", password: "cliente1", fechaNacimiento: "1998-03-22", rolId: 3, regionId: 2, comunaId: 4, direccion: "Los Aromos 789", estado: "Activo" },
-  { run: "444444444", nombre: "Diego", apellidos: "Pérez", correo: "diego@gmail.com", password: "diego123", fechaNacimiento: "1996-07-10", rolId: 3, regionId: 1, comunaId: 3, direccion: "Av. Central 555", estado: "Activo" },
-];
-
-const PRODUCTOS: Producto[] = [
-  { codigo: "CH-001", nombre: "Aros Dorados", descripcion: "Aros dorados clásicos que aportan luz y brillo a cualquier look de día.", precio: 11500, stock: 15, stockCritico: 4, categoriaId: 3, imagen: "productos/aros1.jpg", estado: "Activo" },
-  { codigo: "CH-002", nombre: "Cintillo Hojas Doradas", descripcion: "Cintillo dorado con delicadas hojas que realzan cualquier peinado.", precio: 8500, stock: 20, stockCritico: 5, categoriaId: 5, imagen: "productos/cintillo.jpg", estado: "Activo" },
-  { codigo: "CH-003", nombre: "Collar Corazón Dorado", descripcion: "Collar con colgante en forma de corazón dorado, romántico y versátil.", precio: 15900, stock: 12, stockCritico: 3, categoriaId: 1, imagen: "productos/collar1.jpg", estado: "Activo" },
-  { codigo: "CH-004", nombre: "Collar Perlado Corazón Rojo", descripcion: "Collar aperlado con colgante de corazón rojo para un toque lleno de pasión.", precio: 16900, stock: 10, stockCritico: 3, categoriaId: 1, imagen: "productos/collar2.jpg", estado: "Activo" },
-  { codigo: "CH-005", nombre: "Collar Playero Estrellas de Mar", descripcion: "Collar estilo playero adornado con conchitas y estrellas de mar.", precio: 13900, stock: 14, stockCritico: 4, categoriaId: 1, imagen: "productos/collar3.jpg", estado: "Activo" },
-  { codigo: "CH-006", nombre: "Collar Perlas y Medallas", descripcion: "Collar con perlas y medallas decorativas, elegante y con mucho estilo.", precio: 17900, stock: 8, stockCritico: 3, categoriaId: 1, imagen: "productos/collar4.jpg", estado: "Activo" },
-  { codigo: "CH-007", nombre: "Diadema Multicolor", descripcion: "Diademas de distintos colores para darle vida y alegría a tu look.", precio: 6900, stock: 25, stockCritico: 6, categoriaId: 4, imagen: "productos/diadema 1.jpeg", estado: "Activo" },
-  { codigo: "CH-008", nombre: "Diadema Tonos Pastel", descripcion: "Diademas en suaves tonos pastel, frescas y femeninas.", precio: 6900, stock: 22, stockCritico: 6, categoriaId: 4, imagen: "productos/diadema2.jpeg", estado: "Activo" },
-  { codigo: "CH-009", nombre: "Diadema Diseño Especial", descripcion: "Diadema con patrón característico y diseño diferencial.", precio: 7500, stock: 16, stockCritico: 5, categoriaId: 4, imagen: "productos/diadema4.jpeg", estado: "Activo" },
-  { codigo: "CH-010", nombre: "Diadema Colores Vivos", descripcion: "Diadema con nuevo patrón y colores llamativos que no pasan desapercibidos.", precio: 7500, stock: 20, stockCritico: 5, categoriaId: 4, imagen: "productos/diadema5.jpg", estado: "Activo" },
-  { codigo: "CH-011", nombre: "Llavero Perro Salchicha", descripcion: "Llavero divertido con figura de perro salchicha para acompañarte a todas partes.", precio: 4900, stock: 30, stockCritico: 8, categoriaId: 5, imagen: "productos/llavero1.jpg", estado: "Activo" },
-  { codigo: "CH-012", nombre: "Llavero Salchicha Ternura", descripcion: "Llavero de perro salchicha en versión tierna, ideal para regalar.", precio: 4900, stock: 28, stockCritico: 8, categoriaId: 5, imagen: "productos/llavero2.jpg", estado: "Activo" },
-  { codigo: "CH-013", nombre: "Pulsera Dios con Perlas", descripcion: "Pulsera con palabra \"Dios\" combinada con delicadas perlas.", precio: 9900, stock: 16, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera.jpg", estado: "Activo" },
-  { codigo: "CH-014", nombre: "Pulsera Figuras", descripcion: "Pulsera con figuras decorativas que le dan un toque único.", precio: 8900, stock: 18, stockCritico: 5, categoriaId: 2, imagen: "productos/pulsera2.jpg", estado: "Activo" },
-  { codigo: "CH-015", nombre: "Pulsera Corazones", descripcion: "Pulsera adornada con corazones, romántica y delicada.", precio: 8900, stock: 20, stockCritico: 5, categoriaId: 2, imagen: "productos/pulsera3.jpg", estado: "Activo" },
-  { codigo: "CH-016", nombre: "Pulsera Cuero y Figuras", descripcion: "Pulsera de cuero combinada con figuras, moderna y con carácter.", precio: 10900, stock: 12, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera4.jpg", estado: "Activo" },
-  { codigo: "CH-017", nombre: "Pulsera Cuero Encanto", descripcion: "Pulsera de cuero con figuras y encanto casual.", precio: 10900, stock: 12, stockCritico: 4, categoriaId: 2, imagen: "productos/pulsera5.jpg", estado: "Activo" },
-];
-
-const NOTICIAS: Noticia[] = [
-  {
-    id: 1,
-    titulo: "Guía de Tendencias: Accesorios de Primavera",
-    resumen: "Conoce los tonos y materiales que marcarán la temporada. Desde piezas minimalistas hasta combinaciones audaces.",
-    imagen: "https://i.pinimg.com/736x/2b/ac/61/2bac61c55d72899ee7a502918a64f661.jpg",
-    fecha: "2026-08-01",
-    slug: "detalle-1",
-    categoria: "Tendencias",
-    autor: "Equipo Pink & Pink",
-    parrafos: [
-      "La primavera marca el momento ideal para renovar nuestro estilo y abrazar combinaciones de accesorios llenas de frescura y luz. Esta temporada, la joyería deja de ser un complemento secundario para convertirse en el punto focal de cada outfit, destacando la superposición de capas y la mezcla de texturas.",
-      "El 'layering' o la tendencia de llevar múltiples capas continúa liderando las preferencias. La clave esta temporada está en combinar gargantillas estructuradas con cadenas finas de diferentes alturas y delicados dijes que aporten movimiento. No le temas a contrastar acabados lisos con detalles en circonias o cristales brillantes.",
-      "En cuanto a paletas de color, los tonos dorados cálidos encabezan las listas, transmitiendo la calidez de los días soleados. Sin embargo, los destellos plateados y las piezas con toques en tonos pastel —como cuarzo rosa, verde menta y azul cielo— se consolidan como los favoritos para elevar looks casuales e informales.",
-      "Para lograr el equilibrio perfecto sin recargar tu imagen, te sugerimos focalizar la atención: si vas a lucir un escote llamativo con un conjunto de collares recargado, opta por aros pequeños de tipo 'huggie' o 'studs'. Así mantendrás un contraste armonioso, sofisticado y sumamente chic."
-    ],
-  },
-  {
-    id: 2,
-    titulo: "Cómo Cuidar tus Joyas para que Cuenten Historias",
-    resumen: "Consejos prácticos para limpiar y almacenar tus accesorios favoritos evitando el desgaste del día a día.",
-    imagen: "https://i.pinimg.com/1200x/eb/f0/bb/ebf0bb7abc570a437239de7bef26352d.jpg",
-    fecha: "2026-08-10",
-    slug: "detalle-2",
-    categoria: "Tips & Cuidado",
-    autor: "Equipo Pink & Pink",
-    parrafos: [
-      "Nuestras joyas no solo son accesorios estéticos, también guardan recuerdos, momentos especiales y nuestra propia esencia. Para asegurar que tus piezas favoritas mantengan su brillo original y permanezcan como nuevas a lo largo de los años, es fundamental brindarles una rutina de cuidado y conservación adecuada.",
-      "El peor enemigo del brillo en la bisutería fina y las joyas es la humedad junto con los químicos cotidianos. Recomendamos aplicar perfume, lociones corporales, fijadores de cabello y maquillaje antes de colocar tus accesorios. De esta forma, evitarás que la capa protectora del metal sufra reacciones químicas que alteren su acabado.",
-      "El almacenamiento correcto marca una diferencia enorme. En lugar de guardar todas tus piezas juntas en un mismo recipiente —lo que provoca fricción y rayaduras entre metales—, procura organizarlas de manera individual en bolsas de tela suave o compartimentos acolchados. Esto previene también los molestos nudos en las cadenas finas.",
-      "Por último, para su limpieza habitual, simplemente utiliza un paño de microfibra seco y limpio tras cada uso. Esto eliminará cualquier resto de grasitud o sudor acumulado durante el día, garantizando que tus aros, pulseras y collares conserven su resplandor y belleza intactos por mucho más tiempo."
-    ],
-  },
-];
-
-export function inicializarDatos() {
-  const nuevaVersion = localStorage.getItem("chic_version") !== CHIC_VERSION;
-
-  if (nuevaVersion || !localStorage.getItem(CHIC_KEYS.roles)) {
-    localStorage.setItem(CHIC_KEYS.roles, JSON.stringify(ROLES));
-  }
-  if (nuevaVersion || !localStorage.getItem(CHIC_KEYS.categorias)) {
-    localStorage.setItem(CHIC_KEYS.categorias, JSON.stringify(CATEGORIAS));
-  }
-  if (nuevaVersion || !localStorage.getItem(CHIC_KEYS.regiones)) {
-    localStorage.setItem(CHIC_KEYS.regiones, JSON.stringify(REGIONES));
-  }
-  if (nuevaVersion || !localStorage.getItem(CHIC_KEYS.comunas)) {
-    localStorage.setItem(CHIC_KEYS.comunas, JSON.stringify(COMUNAS));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.usuarios)) {
-    localStorage.setItem(CHIC_KEYS.usuarios, JSON.stringify(USUARIOS));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.productos)) {
-    localStorage.setItem(CHIC_KEYS.productos, JSON.stringify(PRODUCTOS));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.blog)) {
-    localStorage.setItem(CHIC_KEYS.blog, JSON.stringify(NOTICIAS));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.carrito)) {
-    localStorage.setItem(CHIC_KEYS.carrito, JSON.stringify([]));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.contactos)) {
-    localStorage.setItem(CHIC_KEYS.contactos, JSON.stringify([]));
-  }
-  if (!localStorage.getItem(CHIC_KEYS.ordenes)) {
-    localStorage.setItem(CHIC_KEYS.ordenes, JSON.stringify([]));
-  }
-
-  if (nuevaVersion) {
-    localStorage.setItem("chic_version", CHIC_VERSION);
-  }
-}

@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { CHIC_KEYS } from "../storage/claves";
-import { useColeccion } from "../storage/useColeccion";
+import { contentApi } from "../api/content";
 import { alertas } from "../utils/alerta";
-import type { Mensaje } from "../types";
 const REGLAS = {
     nombre: { vacio: "Ingresa tu nombre." },
     apellido: { vacio: "Ingresa tu apellido." },
@@ -10,7 +8,7 @@ const REGLAS = {
     mensaje: { corto: "Escribe un mensaje de al menos 10 caracteres." },
 };
 export default function Contacto() {
-    const { datos: mensajes, guardar } = useColeccion<Mensaje>(CHIC_KEYS.contactos);
+    const [enviando, setEnviando] = useState(false);
     const [form, setForm] = useState({
         nombre: "",
         apellido: "",
@@ -35,13 +33,25 @@ export default function Contacto() {
         setErrores(nuevos);
         return Object.keys(nuevos).length === 0;
     }
-    function enviar(evento: FormEvent<HTMLFormElement>) {
+    async function enviar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
         if (!validar()) return;
-        guardar([...mensajes, { ...form, mensaje: form.mensaje.trim() }]);
-        void alertas.exito("Mensaje enviado", "¡Gracias por escribirnos! Te responderemos pronto.");
-        setForm({ nombre: "", apellido: "", email: "", mensaje: "" });
-        setErrores({});
+        setEnviando(true);
+        try {
+            await contentApi.sendContact({
+                nombre: form.nombre.trim(),
+                apellido: form.apellido.trim(),
+                email: form.email.trim(),
+                mensaje: form.mensaje.trim(),
+            });
+            void alertas.exito("Mensaje enviado", "¡Gracias por escribirnos! Te responderemos pronto.");
+            setForm({ nombre: "", apellido: "", email: "", mensaje: "" });
+            setErrores({});
+        } catch {
+            void alertas.error("No se pudo enviar", "Intenta nuevamente en unos minutos.");
+        } finally {
+            setEnviando(false);
+        }
     }
     return (
         <main className="container my-5">
@@ -114,8 +124,8 @@ export default function Contacto() {
                             </div>
                             <div className="d-grid gap-2">
 
-                                <button type="submit" className="btn btn-contacto">
-                                    Enviar Mensaje
+                                <button type="submit" className="btn btn-contacto" disabled={enviando}>
+                                    {enviando ? "Enviando..." : "Enviar Mensaje"}
                                 </button>
                             </div>
                         </form>
