@@ -95,7 +95,31 @@ class ProductStockSecurityTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void unPathConPercentEncodingNoEvitaElFiltro() throws Exception {
-        mockMvc.perform(post("/api/v1/products/stock/res%65rve")
+        mockMvc.perform(post(java.net.URI.create("/api/v1/products/stock/res%65rve"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void unPathParamPercentEncodedNoEvitaElFiltro() throws Exception {
+        mockMvc.perform(post(java.net.URI.create("/api/v1/products/stock/reserve%3Bx"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.datos.error").value("SERVICE_ONLY"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void unaSecuenciaDePorcentajeInvalidaNoLanzaQuinientos() throws Exception {
+        mockMvc.perform(post(java.net.URI.create("/api/v1/products/stock/reser%zzve"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body()))
                 .andExpect(status().isForbidden())

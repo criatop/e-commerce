@@ -40,6 +40,8 @@ public class StockInternalKeyFilter extends OncePerRequestFilter {
             "/api/v1/products/stock/confirm",
             "/api/v1/products/stock/release");
 
+    private static final String PREFIJO_STOCK = "/api/v1/products/stock/";
+
     /**
      * Normaliza igual que Spring MVC: quita path-params ({@code ;x}) y decodifica
      * percent-encoding antes de comparar.
@@ -75,24 +77,42 @@ public class StockInternalKeyFilter extends OncePerRequestFilter {
     }
 
     private boolean protegida(HttpServletRequest request) {
-        return "POST".equalsIgnoreCase(request.getMethod())
-                && RUTAS_PROTEGIDAS.contains(ruta(request));
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            return false;
+        }
+        String cruda = PATH_HELPER.getPathWithinApplication(request);
+        try {
+            String ruta = quitarPathParams(UriUtils.decode(cruda, StandardCharsets.UTF_8));
+            return RUTAS_PROTEGIDAS.contains(ruta);
+        } catch (IllegalArgumentException ex) {
+            // No se puede normalizar (percent-encoding invalido): si apunta al area
+            // de stock se rechaza por defecto; nunca se propaga la excepcion.
+            return cruda.startsWith(PREFIJO_STOCK);
+        }
     }
 
-    private String ruta(HttpServletRequest request) {
-        String ruta = PATH_HELPER.getPathWithinApplication(request);
-        try {
-            return UriUtils.decode(ruta, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException ex) {
-            // Ruta con percent-encoding invalido: el firewall la rechaza mas adelante.
-            return ruta;
+    private static String quitarPathParams(String ruta) {
+        StringBuilder limpia = new StringBuilder(ruta.length());
+        int i = 0;
+        while (i < ruta.length()) {
+            char actual = ruta.charAt(i);
+            if (actual == ';') {
+                i++;
+                while (i < ruta.length() && ruta.charAt(i) != '/') {
+                    i++;
+                }
+            } else {
+                limpia.append(actual);
+                i++;
+            }
         }
+        return limpia.toString();
     }
 
     private static UrlPathHelper crearPathHelper() {
         UrlPathHelper helper = new UrlPathHelper();
-        helper.setRemoveSemicolonContent(true);
-        helper.setUrlDecode(true);
+        helper.setRemoveSemicolonContent(false);
+        helper.setUrlDecode(false);
         return helper;
     }
 
