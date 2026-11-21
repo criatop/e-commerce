@@ -63,10 +63,10 @@ export default function AdminUsuarios() {
     {
       clave: "region",
       titulo: "Región / Comuna",
-      orden: (u) => nombreRegion(u.regionId),
+      orden: (u) => nombreRegion((u.regionId ?? 0)),
       render: (u) => (
         <>
-          {nombreRegion(u.regionId)} / {nombreComuna(u.comunaId)}
+          {nombreRegion((u.regionId ?? 0))} / {nombreComuna((u.comunaId ?? 0))}
         </>
       ),
     },

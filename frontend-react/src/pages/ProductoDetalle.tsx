@@ -72,7 +72,7 @@ export default function ProductoDetalle() {
                 <ol className="breadcrumb mb-0">
                     <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
                     <li className="breadcrumb-item"><Link to="/productos">Productos</Link></li>
-                    <li className="breadcrumb-item"><Link to={`/productos?categoria=${producto.categoriaId}`}>{nombreCategoria(producto.categoriaId)}</Link></li>
+                    <li className="breadcrumb-item"><Link to={`/productos?categoria=${producto.categoriaId}`}>{nombreCategoria(Number(producto.categoriaId))}</Link></li>
                     <li className="breadcrumb-item active" aria-current="page">{producto.nombre}</li>
                 </ol>
             </nav>
@@ -94,7 +94,7 @@ export default function ProductoDetalle() {
                     <div className="col-md-6">
                         <div className="d-flex justify-content-between align-items-start">
                             <span className="badge badge-categoria mb-2">
-                                {nombreCategoria(p.categoriaId)}
+                                {nombreCategoria(Number(p.categoriaId))}
                             </span>
                             <button className="btn btn-sm btn-outline-secondary" onClick={toggleFavorito} title={favorito ? "Quitar de favoritos" : "Agregar a favoritos"}>
                                 <i className={`bi ${favorito ? "bi-heart-fill text-danger" : "bi-heart"}`}></i>
@@ -150,7 +150,7 @@ export default function ProductoDetalle() {
                             <h6 className="fw-bold mb-2">Información</h6>
                             <ul className="small mb-0 text-muted">
                                 <li>Código: {p.codigo}</li>
-                                <li>Categoría: {nombreCategoria(p.categoriaId)}</li>
+                                <li>Categoría: {nombreCategoria(Number(p.categoriaId))}</li>
                                 <li>Compra segura y protegida</li>
                                 <li>Cambios y devoluciones según política</li>
                             </ul>

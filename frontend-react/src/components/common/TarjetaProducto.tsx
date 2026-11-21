@@ -29,7 +29,7 @@ content-center"
                 <div className="card-body d-flex flex-column p-3 bg-white">
                     <div>
                         <span className="badge badge-categoria mb-2">
-                            {nombreCategoria(producto.categoriaId)}
+                            {nombreCategoria(Number(producto.categoriaId))}
                         </span>
                         <Link to={`/producto-detalle?codigo=${encodeURIComponent(producto.codigo)}`}>
                             <h5 className="card-title text-truncate fw-bold mb-1 text-dark">

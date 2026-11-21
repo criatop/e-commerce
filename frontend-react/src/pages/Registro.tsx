@@ -1,12 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useColeccion } from "../storage/useColeccion";
-import { CHIC_KEYS } from "../storage/claves";
 import { useTablasMaestras } from "../hooks/useTablasMaestras";
 import { alertas } from "../utils/alerta";
 import { limpiarRun, validarRun } from "../utils/run";
-import type { Usuario } from "../types";
+import { ApiError } from "../api/client";
 import "../estiloAuth.css";
 
 type Campo =
@@ -46,8 +43,6 @@ const FORMULARIO_VACIO = {
 
 export default function Registro() {
   const navegar = useNavigate();
-  const { login } = useAuth();
-  const { datos: usuarios, guardar } = useColeccion<Usuario>(CHIC_KEYS.usuarios);
   const { regiones, comunasDe } = useTablasMaestras();
 
   const [form, setForm] = useState(FORMULARIO_VACIO);
@@ -70,13 +65,13 @@ export default function Registro() {
       nuevos.fechaNacimiento = true;
     if (!form.region) nuevos.region = true;
     if (!form.comuna) nuevos.comuna = true;
-    if (form.direccion.trim() === "") nuevos.direccion = true;
+    if ((form.direccion ?? "").trim() === "") nuevos.direccion = true;
 
     setErrores(nuevos);
     return Object.keys(nuevos).length === 0;
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     if (!validar()) {
@@ -86,37 +81,25 @@ export default function Registro() {
 
     const run = limpiarRun(form.run);
     const correo = form.correo.trim();
-
-    const yaExiste = usuarios.some(
-      (u) => u.correo.toLowerCase() === correo.toLowerCase() || u.run === run,
-    );
-    if (yaExiste) {
-      void alertas.error("Cuenta ya existente", "Ya existe una cuenta registrada con ese correo o RUN.");
-      return;
-    }
-
-    const nuevo: Usuario = {
-      run,
-      nombre: form.nombre.trim(),
-      apellidos: form.apellidos.trim(),
-      correo,
-      password: form.password,
-      fechaNacimiento: form.fechaNacimiento,
-      rolId: 3,
-      regionId: Number(form.region),
-      comunaId: Number(form.comuna),
-      direccion: form.direccion.trim(),
-      estado: "Activo",
-    };
-
-    guardar([...usuarios, nuevo]);
-
-    void alertas
-      .exito("¡Cuenta creada!", `Bienvenida/o, ${nuevo.nombre}. Tu cuenta ha sido registrada con éxito.`)
-      .then(() => {
-        login(correo, nuevo.password);
-        navegar("/cuenta");
+    try {
+      const { register } = await import("../api/auth");
+      await register({
+        run,
+        email: correo,
+        password: form.password,
+        nombre: form.nombre.trim(),
+        apellidos: form.apellidos.trim(),
+        fechaNacimiento: form.fechaNacimiento || undefined,
+        regionId: form.region ? Number(form.region) : undefined,
+        comunaId: form.comuna ? Number(form.comuna) : undefined,
+        direccion: (form.direccion ?? "").trim() || undefined,
       });
+      await alertas.exito("¡Cuenta creada!", `Bienvenida/o, ${form.nombre.trim()}. Tu cuenta ha sido registrada con éxito.`);
+      navegar("/cuenta");
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : "No se pudo registrar la cuenta.";
+      void alertas.error("Error de registro", msg);
+    }
   }
 
   return (
@@ -307,7 +290,7 @@ export default function Registro() {
               id="direccion"
               placeholder="Calle, número, depto/casa"
               required
-              value={form.direccion}
+              value={form.direccion ?? ""}
               onChange={(e) => escribir("direccion", e.target.value)}
             />
             <div className="invalid-feedback">{errores.direccion ? MENSAJES.direccion : ""}</div>

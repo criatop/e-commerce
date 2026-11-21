@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CHIC_KEYS } from "../storage/claves";
-import type { Rol, Sesion, Usuario } from "../types";
+import type { Sesion } from "../types";
+import * as authApi from "../api/auth";
+import { getToken } from "../api/client";
 
 export type MotivoFallo = "credenciales" | "inactivo";
 
@@ -11,9 +13,9 @@ interface AuthContextValue {
   esAdmin: boolean;
   esVendedor: boolean;
   esPersonal: boolean;
-  login: (correo: string, password: string) => MotivoFallo | null;
+  login: (correo: string, password: string) => Promise<MotivoFallo | null>;
   logout: () => void;
-  actualizarSesion: (nuevosDatos: Sesion) => void;
+  actualizarSesion: (nuevosDatos: Partial<Sesion>) => Promise<void>;
   destinoTrasLogin: () => string;
 }
 
@@ -30,86 +32,79 @@ function leerSesion(): Sesion | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
 
-  function login(correo: string, password: string): MotivoFallo | null {
-    const usuarios = JSON.parse(localStorage.getItem(CHIC_KEYS.usuarios) ?? "[]") as Usuario[];
-    const usuario = usuarios.find(
-      (u) => u.correo.toLowerCase() === correo.trim().toLowerCase() && u.password === password,
-    );
-    if (!usuario) return "credenciales";
-    if (usuario.estado !== "Activo") return "inactivo";
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    void authApi
+      .me()
+      .then((u) => setSesion(u as Sesion))
+      .catch(() => {
+        authApi.logout();
+        setSesion(null);
+      });
+  }, []);
 
-    const nueva: Sesion = {
-      run: usuario.run,
-      nombre: usuario.nombre,
-      apellidos: usuario.apellidos,
-      correo: usuario.correo,
-      fechaNacimiento: usuario.fechaNacimiento,
-      rolId: usuario.rolId,
-      regionId: usuario.regionId,
-      comunaId: usuario.comunaId,
-      direccion: usuario.direccion,
-      estado: usuario.estado,
-    };
-    localStorage.setItem(CHIC_KEYS.sesion, JSON.stringify(nueva));
-    setSesion(nueva);
-    return null;
+  async function login(correo: string, password: string): Promise<MotivoFallo | null> {
+    try {
+      const res = await authApi.login({ email: correo.trim(), password });
+      setSesion(res.usuario as Sesion);
+      return null;
+    } catch (e: unknown) {
+      const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+      if (msg.includes("inactiv") || msg.includes("desactiv")) return "inactivo";
+      return "credenciales";
+    }
   }
 
   function logout() {
-    localStorage.removeItem(CHIC_KEYS.sesion);
+    authApi.logout();
     setSesion(null);
   }
 
-  function actualizarSesion(nuevosDatos: Sesion) {
-    // 1. Actualizar en el estado local de sesión y en localStorage
-    setSesion(nuevosDatos);
-    localStorage.setItem(CHIC_KEYS.sesion, JSON.stringify(nuevosDatos));
-
-    // 2. Actualizar también dentro de la lista completa de usuarios
-    const usuarios = JSON.parse(localStorage.getItem(CHIC_KEYS.usuarios) ?? "[]") as Usuario[];
-    const usuariosActualizados = usuarios.map((u) => {
-      if (u.run === nuevosDatos.run) {
-        return {
-          ...u,
-          nombre: nuevosDatos.nombre,
-          apellidos: nuevosDatos.apellidos,
-          correo: nuevosDatos.correo,
-          fechaNacimiento: nuevosDatos.fechaNacimiento,
-          regionId: nuevosDatos.regionId,
-          comunaId: nuevosDatos.comunaId,
-          direccion: nuevosDatos.direccion,
-        };
-      }
-      return u;
+  async function actualizarSesion(nuevosDatos: Partial<Sesion>) {
+    const actualizada = await authApi.updateProfile({
+      nombre: nuevosDatos.nombre,
+      apellidos: nuevosDatos.apellidos,
+      fechaNacimiento: nuevosDatos.fechaNacimiento,
+      regionId: nuevosDatos.regionId as number | null | undefined,
+      comunaId: nuevosDatos.comunaId as number | null | undefined,
+      direccion: nuevosDatos.direccion,
     });
-
-    localStorage.setItem(CHIC_KEYS.usuarios, JSON.stringify(usuariosActualizados));
+    setSesion(actualizada as Sesion);
   }
 
   function destinoTrasLogin(): string {
     const actual = leerSesion();
     if (!actual) return "/cuenta";
-    return actual.rolId === 1 || actual.rolId === 2 ? "/admin" : "/cuenta";
+    const rol = (actual.rol ?? "").toUpperCase();
+    return actual.rolId === 1 || actual.rolId === 2 || rol === "ADMIN" || rol === "SELLER"
+      ? "/admin"
+      : "/cuenta";
   }
 
   const iniciales = (sesion?.nombre ?? "")
     .concat(" ", sesion?.apellidos ?? "")
     .trim()
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((p) => p.charAt(0).toUpperCase())
     .join("");
 
-  const roles = JSON.parse(localStorage.getItem(CHIC_KEYS.roles) ?? "[]") as Rol[];
-  const nombreRol = roles.find((r) => r.id === sesion?.rolId)?.nombre ?? "";
+  const rolUpper = (sesion?.rol ?? "").toUpperCase();
+  const nombreRol =
+    rolUpper === "ADMIN" ? "Administrador" : rolUpper === "SELLER" ? "Vendedor" : rolUpper === "CUSTOMER" ? "Cliente" : "";
+
+  const esAdmin = sesion?.rolId === 1 || rolUpper === "ADMIN";
+  const esVendedor = sesion?.rolId === 2 || rolUpper === "SELLER";
 
   const valor: AuthContextValue = {
     sesion,
     iniciales,
     nombreRol,
-    esAdmin: sesion?.rolId === 1,
-    esVendedor: sesion?.rolId === 2,
-    esPersonal: sesion?.rolId === 1 || sesion?.rolId === 2,
+    esAdmin,
+    esVendedor,
+    esPersonal: esAdmin || esVendedor,
     login,
     logout,
     actualizarSesion,

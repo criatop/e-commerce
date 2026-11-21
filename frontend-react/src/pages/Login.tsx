@@ -10,10 +10,10 @@ export default function Login() {
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
-    const fallo = login(correo, password);
+    const fallo = await login(correo, password);
 
     if (fallo === "credenciales") {
       void alertas.error("Credenciales incorrectas", "Revisa tu correo y contraseña.");

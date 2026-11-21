@@ -69,7 +69,7 @@ export default function AdminUsuarioForm() {
     if (!form.rolId) nuevos.rolId = true;
     if (!form.regionId) nuevos.regionId = true;
     if (!form.comunaId) nuevos.comunaId = true;
-    if (!form.direccion.trim()) nuevos.direccion = true;
+    if (!(form.direccion ?? "").trim()) nuevos.direccion = true;
 
     const run = limpiarRun(form.run);
     const correo = form.correo.trim();
@@ -104,7 +104,7 @@ export default function AdminUsuarioForm() {
       rolId: Number(form.rolId),
       regionId: Number(form.regionId),
       comunaId: Number(form.comunaId),
-      direccion: form.direccion.trim(),
+      direccion: (form.direccion ?? "").trim(),
       estado: form.estado,
     };
 
@@ -262,7 +262,7 @@ export default function AdminUsuarioForm() {
                     className={"form-control" + (errores.direccion ? " is-invalid" : "")}
                     id="direccionUsuarioAdmin"
                     placeholder="Calle, número, depto/casa"
-                    value={form.direccion}
+                    value={form.direccion ?? ""}
                     onChange={(e) => escribir("direccion", e.target.value)}
                   />
                   <div className="invalid-feedback">Ingresa la dirección.</div>

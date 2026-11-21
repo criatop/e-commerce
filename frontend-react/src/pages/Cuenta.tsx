@@ -44,9 +44,9 @@ export default function Cuenta() {
     );
   }
 
-  const rol = roles.datos.find((r) => r.id === sesion.rolId);
-  const region = regiones.datos.find((r) => r.id === (editando ? Number(form.regionId) : sesion.regionId));
-  const comuna = comunas.datos.find((c) => c.id === (editando ? Number(form.comunaId) : sesion.comunaId));
+  const rol = roles.datos.find((r) => Number(r.id) === Number(sesion?.rolId));
+  const region = regiones.datos.find((r) => String(r.id) === String(editando ? form.regionId : sesion?.regionId ?? ""));
+  const comuna = comunas.datos.find((c) => String(c.id) === String(editando ? form.comunaId : sesion?.comunaId ?? ""));
 
   // Comunas filtradas por la región seleccionada
   const comunasFiltradas = comunas.datos.filter(
@@ -58,26 +58,25 @@ export default function Cuenta() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function guardarCambios(e: React.FormEvent) {
+  async function guardarCambios(e: React.FormEvent) {
     e.preventDefault();
 
     if (!sesion) return;
 
-    const datosActualizados = {
-      ...sesion,
-      nombre: form.nombre.trim(),
-      apellidos: form.apellidos.trim(),
-      correo: form.correo.trim(),
-      run: form.run.trim(),
-      fechaNacimiento: form.fechaNacimiento,
-      direccion: form.direccion.trim(),
-      regionId: Number(form.regionId),
-      comunaId: Number(form.comunaId),
-    };
-
-    actualizarSesion(datosActualizados);
-    void alertas.exito("Perfil actualizado", "Tus datos se guardaron correctamente.");
-    setEditando(false);
+    try {
+      await actualizarSesion({
+        nombre: form.nombre.trim(),
+        apellidos: form.apellidos.trim(),
+        fechaNacimiento: form.fechaNacimiento,
+        direccion: (form.direccion ?? "").trim(),
+        regionId: form.regionId ? Number(form.regionId) : null,
+        comunaId: form.comunaId ? Number(form.comunaId) : null,
+      });
+      void alertas.exito("Perfil actualizado", "Tus datos se guardaron correctamente.");
+      setEditando(false);
+    } catch (e: unknown) {
+      void alertas.error("No se pudo actualizar", e instanceof Error ? e.message : "Intenta nuevamente.");
+    }
   }
 
   function cancelar() {
@@ -88,8 +87,8 @@ export default function Cuenta() {
       apellidos: sesion.apellidos,
       correo: sesion.correo,
       run: sesion.run,
-      fechaNacimiento: sesion.fechaNacimiento,
-      direccion: sesion.direccion,
+      fechaNacimiento: sesion.fechaNacimiento ?? "",
+      direccion: sesion.direccion ?? "",
       regionId: String(sesion.regionId),
       comunaId: String(sesion.comunaId),
     });
@@ -266,7 +265,7 @@ export default function Cuenta() {
                             type="text"
                             className="form-control form-control-sm w-60 text-end"
                             name="direccion"
-                            value={form.direccion}
+                            value={form.direccion ?? ""}
                             onChange={handleChange}
                           />
                         ) : (

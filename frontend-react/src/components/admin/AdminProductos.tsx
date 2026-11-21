@@ -67,9 +67,9 @@ export default function AdminProductos() {
     {
       clave: "categoria",
       titulo: "Categoría",
-      orden: (p) => nombreCategoria(p.categoriaId),
+      orden: (p) => nombreCategoria(Number(p.categoriaId)),
       render: (p) => (
-        <span className="badge badge-categoria">{nombreCategoria(p.categoriaId)}</span>
+        <span className="badge badge-categoria">{nombreCategoria(Number(p.categoriaId))}</span>
       ),
     },
     {

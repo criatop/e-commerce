@@ -34,10 +34,10 @@ export default function CompraExitosa() {
 
   const folioOrden = orden.folio || folio || "";
   const itemsOrden = Array.isArray(orden.items) ? orden.items : [];
-  const entrega = orden.entrega || ({} as any);
+  const entrega: Partial<Orden["entrega"]> = orden.entrega || {};
   const envio = orden.envio || { metodo: "-", costo: 0 };
   const pago = orden.pago || { metodo: "-" };
-  const subtotal = typeof orden.subtotal === "number" ? orden.subtotal : itemsOrden.reduce((a,b:any)=>a+(b.subtotal||0),0);
+  const subtotal = typeof orden.subtotal === "number" ? orden.subtotal : itemsOrden.reduce((a, b) => a + (b.subtotal || 0), 0);
   const total = typeof orden.total === "number" ? orden.total : subtotal + (envio.costo||0);
 
   return (
@@ -92,7 +92,7 @@ export default function CompraExitosa() {
                     </tr>
                   </thead>
                   <tbody>
-                    {itemsOrden.map((item:any, i:number) => (
+                    {itemsOrden.map((item, i) => (
                       <tr key={i}>
                         <td>
                           <div className="fw-semibold">{item.nombre}</div>

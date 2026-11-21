@@ -11,11 +11,11 @@ const VACIO = { id: "", nombre: "", descripcion: "" };
 export default function AdminCategorias() {
   const { datos: categorias, guardar } = useColeccion<Categoria>(CHIC_KEYS.categorias);
   const [form, setForm] = useState(VACIO);
-  const [editando, setEditando] = useState<number | null>(null);
+  const [editando, setEditando] = useState<number | string | null>(null);
 
   function iniciarEdicion(c: Categoria) {
     setEditando(c.id);
-    setForm({ id: String(c.id), nombre: c.nombre, descripcion: c.descripcion });
+    setForm({ id: String(c.id), nombre: c.nombre, descripcion: c.descripcion ?? "" });
   }
 
   function cancelar() {
@@ -32,7 +32,7 @@ export default function AdminCategorias() {
       guardar(categorias.map((c) => (c.id === id ? { id, nombre: form.nombre.trim(), descripcion: form.descripcion.trim() } : c)));
       void alertas.exito("Categoría actualizada", "Los cambios fueron guardados.");
     } else {
-      const nuevoId = categorias.length ? Math.max(...categorias.map((c) => c.id)) + 1 : 1;
+      const nuevoId = categorias.length ? Math.max(...categorias.map((c) => Number(c.id))) + 1 : 1;
       guardar([...categorias, { id: nuevoId, nombre: form.nombre.trim(), descripcion: form.descripcion.trim() }]);
       void alertas.exito("Categoría creada", "Se agregó al listado.");
     }
@@ -50,13 +50,13 @@ export default function AdminCategorias() {
   const columnas: Columna<Categoria>[] = [
     { clave: "id", titulo: "ID", render: (c) => c.id },
     { clave: "nombre", titulo: "Nombre", render: (c) => c.nombre, orden: (c) => c.nombre },
-    { clave: "descripcion", titulo: "Descripción", render: (c) => c.descripcion },
+    { clave: "descripcion", titulo: "Descripción", render: (c) => c.descripcion ?? "" },
     {
       clave: "acciones", titulo: "Acciones", claseCelda: "text-end",
       render: (c) => (
         <>
           <button className="btn btn-sm btn-outline-primary me-1" onClick={() => iniciarEdicion(c)}><i className="bi bi-pencil"/></button>
-          <button className="btn btn-sm btn-outline-danger" onClick={() => void eliminar(c.id)}><i className="bi bi-trash"/></button>
+          <button className="btn btn-sm btn-outline-danger" onClick={() => void eliminar(Number(c.id))}><i className="bi bi-trash"/></button>
         </>
       )
     }
@@ -94,7 +94,7 @@ export default function AdminCategorias() {
         <div className="col-lg-8">
           <div className="card border-0 caja-admin-tabla">
             <div className="card-body p-0">
-              <DataTable filas={categorias} columnas={columnas} claveFila={(c) => c.id} coincide={(c,t)=>c.nombre.toLowerCase().includes(t)||c.descripcion.toLowerCase().includes(t)} placeholderBusqueda="Buscar categoría..." porPagina={5} textoVacio="Sin categorías." />
+              <DataTable filas={categorias} columnas={columnas} claveFila={(c) => c.id} coincide={(c,t)=>c.nombre.toLowerCase().includes(t)||(c.descripcion ?? "").toLowerCase().includes(t)} placeholderBusqueda="Buscar categoría..." porPagina={5} textoVacio="Sin categorías." />
             </div>
           </div>
         </div>
