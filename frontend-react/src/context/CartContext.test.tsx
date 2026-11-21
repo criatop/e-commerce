@@ -49,7 +49,7 @@ describe("CartContext con sesión", () => {
 
     renderConSesion();
 
-    await waitFor(() => expect(mockMerge).toHaveBeenCalledWith("7", [{ productId: "p1", cantidad: 2 }]));
+    await waitFor(() => expect(mockMerge).toHaveBeenCalledWith("7", [{ productId: "p1", quantity: 2 }]));
     expect(localStorage.getItem("chic_carrito_pendiente")).toBeNull();
   });
 });

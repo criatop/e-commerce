@@ -109,42 +109,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [carrito, setCarrito] = useState<ItemCarrito[]>(leerCarritoLocal);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const procesandoRef = useRef<string | null>(null);
+    // El merge debe ejecutarse una sola vez por uid, pero el efecto puede correrse
+    // dos veces en StrictMode: guardamos la promesa para no descartar la segunda carga.
+    const mergeRef = useRef<{ uid: string; promesa: Promise<void> } | null>(null);
 
     useEffect(() => {
         if (!uid) {
-            procesandoRef.current = null;
+            mergeRef.current = null;
             void Promise.resolve().then(() => {
                 setError(null);
                 setCarrito(leerCarritoLocal());
             });
             return;
         }
-        if (procesandoRef.current === uid) return;
-        procesandoRef.current = uid;
+
+        if (!mergeRef.current || mergeRef.current.uid !== uid) {
+            const pendientes = leerCarritoLocal();
+            const promesa = pendientes.length > 0
+                ? cartApi.merge(uid, pendientes.map((item): CartItemRequest => ({
+                    productId: idDe(item),
+                    quantity: item.cantidad,
+                }))).then(() => undefined)
+                : Promise.resolve();
+            mergeRef.current = { uid, promesa };
+        }
+        const mergePromesa = mergeRef.current.promesa;
 
         let cancelado = false;
         void (async () => {
             setCargando(true);
             setError(null);
             try {
-                const pendientes = leerCarritoLocal();
-                if (pendientes.length > 0) {
-                    const fusion: { productId: string; cantidad: number }[] = pendientes.map((item) => ({
-                        productId: idDe(item),
-                        cantidad: item.cantidad,
-                    }));
-                    await cartApi.merge(uid, fusion as unknown as CartItemRequest[]);
-                }
+                await mergePromesa;
                 const carritoApi = await cartApi.getCart(uid);
-                if (!cancelado) setCarrito(carritoApi.items.map(deItemApi));
+                if (!cancelado) {
+                    setCarrito(carritoApi.items.map(deItemApi));
+                    localStorage.removeItem(CHIC_KEYS.carritoPendiente);
+                }
             } catch (e) {
                 if (!cancelado) {
                     setError(mensajeError(e));
                     setCarrito(leerCarritoLocal());
                 }
             } finally {
-                localStorage.removeItem(CHIC_KEYS.carritoPendiente);
                 if (!cancelado) setCargando(false);
             }
         })();
@@ -284,7 +291,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     quantity: item.cantidad,
                 })),
             });
-            await cartApi.clear(uid);
+            // La orden ya está creada: si falla vaciar el carrito no invalidamos la compra.
+            try {
+                await cartApi.clear(uid);
+            } catch {
+                setError("La orden se creó, pero no se pudo vaciar el carrito. Inténtalo de nuevo desde el carrito.");
+            }
             localStorage.removeItem(CHIC_KEYS.carritoPendiente);
             setCarrito([]);
             void alertas.exitoHtml(
