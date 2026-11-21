@@ -4,9 +4,9 @@ DROP TABLE IF EXISTS payments;
 -- 2. TABLAS MAESTRAS
 CREATE TABLE payments (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id        UUID NOT NULL UNIQUE,
+    order_id        VARCHAR(100) NOT NULL UNIQUE,
     user_id         VARCHAR(100) NOT NULL,
-    amount          DECIMAL(12,2) NOT NULL,
+    amount          DOUBLE PRECISION NOT NULL,
     method          VARCHAR(20) NOT NULL CHECK (method IN ('CREDIT_CARD','DEBIT_CARD','PAYPAL','TRANSFER','WEBPAY')),
     status          VARCHAR(20) NOT NULL DEFAULT 'PENDING'
                     CHECK (status IN ('PENDING','COMPLETED','FAILED','REFUNDED')),

@@ -17,7 +17,7 @@ CREATE TABLE cart_items (
     cart_id      UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
     product_id   VARCHAR(50) NOT NULL,
     product_name VARCHAR(200),
-    price        DECIMAL(12,2) NOT NULL,
+    price        DOUBLE PRECISION NOT NULL,
     quantity     INT NOT NULL CHECK (quantity > 0)
 );
 

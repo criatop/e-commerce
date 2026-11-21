@@ -40,3 +40,4 @@ docker
 
 # Environment
 .env
+.superpowers/

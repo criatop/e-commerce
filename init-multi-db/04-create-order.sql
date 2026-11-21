@@ -15,9 +15,9 @@ CREATE TABLE orders (
     user_id           VARCHAR(100) NOT NULL,
     status            VARCHAR(20) NOT NULL DEFAULT 'PENDING'
                       CHECK (status IN ('PENDING','CONFIRMED','PAID','SHIPPED','DELIVERED','CANCELLED')),
-    total_amount      DECIMAL(12,2) NOT NULL,
-    subtotal_amount   DECIMAL(12,2) NOT NULL DEFAULT 0,
-    shipping_amount   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    total_amount      DOUBLE PRECISION NOT NULL,
+    subtotal_amount   DOUBLE PRECISION NOT NULL DEFAULT 0,
+    shipping_amount   DOUBLE PRECISION NOT NULL DEFAULT 0,
     shipping_address  TEXT NOT NULL,
     shipping_city     VARCHAR(100),
     shipping_postal   VARCHAR(20),
@@ -36,9 +36,9 @@ CREATE TABLE order_items (
     product_id   UUID NOT NULL,
     sku          VARCHAR(50),
     product_name VARCHAR(200),
-    unit_price   DECIMAL(12,2) NOT NULL,
+    unit_price   DOUBLE PRECISION NOT NULL,
     quantity     INT NOT NULL CHECK (quantity > 0),
-    line_total   DECIMAL(12,2) NOT NULL
+    line_total   DOUBLE PRECISION NOT NULL
 );
 
 -- 4. DATOS DE PRUEBA (folio placeholder)

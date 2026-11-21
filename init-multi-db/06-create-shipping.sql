@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS shipments;
 -- 2. TABLAS MAESTRAS
 CREATE TABLE shipments (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id            UUID NOT NULL UNIQUE,
+    order_id            VARCHAR(100) NOT NULL UNIQUE,
     user_id             VARCHAR(100) NOT NULL,
     address             TEXT NOT NULL,
     city                VARCHAR(100) NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE shipments (
                         CHECK (status IN ('PENDING','IN_TRANSIT','DELIVERED','RETURNED')),
     tracking_number     VARCHAR(50) UNIQUE,
     carrier             VARCHAR(50),
-    estimated_delivery  DATE,
-    actual_delivery     DATE,
+    estimated_delivery  TIMESTAMP,
+    actual_delivery     TIMESTAMP,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
