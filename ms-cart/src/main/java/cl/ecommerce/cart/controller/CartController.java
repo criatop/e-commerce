@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
 public class CartController {
 
@@ -18,7 +20,7 @@ public class CartController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<CartResponse>> getCart(@PathVariable String userId) {
-        SecurityUtils.requireSelfPrincipal(userId, "carrito");
+        SecurityUtils.requireSelfOrAdmin(userId);
         return ResponseEntity.ok(ApiResponse.ok(cartService.getCart(userId)));
     }
 
@@ -26,7 +28,16 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponse>> addToCart(
             @PathVariable String userId,
             @RequestBody CartItemRequest request) {
+        SecurityUtils.requireSelfOrAdmin(userId);
         return ResponseEntity.ok(ApiResponse.ok(cartService.addToCart(userId, request), "Producto agregado al carrito"));
+    }
+
+    @PostMapping("/{userId}/merge")
+    public ResponseEntity<ApiResponse<CartResponse>> merge(
+            @PathVariable String userId,
+            @RequestBody List<CartItemRequest> items) {
+        SecurityUtils.requireSelfOrAdmin(userId);
+        return ResponseEntity.ok(ApiResponse.ok(cartService.merge(userId, items), "Carrito fusionado"));
     }
 
     @PutMapping("/{userId}/items/{productId}")
@@ -34,6 +45,7 @@ public class CartController {
             @PathVariable String userId,
             @PathVariable String productId,
             @RequestParam int quantity) {
+        SecurityUtils.requireSelfOrAdmin(userId);
         return ResponseEntity.ok(ApiResponse.ok(cartService.updateQuantity(userId, productId, quantity)));
     }
 
@@ -41,12 +53,14 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponse>> removeFromCart(
             @PathVariable String userId,
             @PathVariable String productId) {
+        SecurityUtils.requireSelfOrAdmin(userId);
         return ResponseEntity.ok(ApiResponse.ok(cartService.removeFromCart(userId, productId)));
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<ApiResponse<Void>> clearCart(@PathVariable String userId) {
+        SecurityUtils.requireSelfOrAdmin(userId);
         cartService.clearCart(userId);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Carrito vaciado"));
+        return ResponseEntity.ok(ApiResponse.<Void>ok(null, "Carrito vaciado"));
     }
 }
