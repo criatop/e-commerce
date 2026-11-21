@@ -66,13 +66,14 @@ export interface OrdenItemApi {
   lineTotal: number;
 }
 
+/** OrderStatus de ms-order: valores del enum del backend (en inglés). */
 export type OrdenEstadoApi =
-  | "PENDIENTE"
-  | "CONFIRMADA"
-  | "PREPARANDO"
-  | "ENVIADA"
-  | "ENTREGADA"
-  | "CANCELADA";
+  | "PENDING"
+  | "CONFIRMED"
+  | "PAID"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
 
 export interface OrdenApi {
   id: string;

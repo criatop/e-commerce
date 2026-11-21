@@ -66,13 +66,13 @@ export function mapNoticia(n: NoticiaApi): Noticia {
     };
 }
 
-const ESTADOS_ORDEN: Record<OrdenEstadoApi, string> = {
-    PENDIENTE: "Pendiente",
-    CONFIRMADA: "Confirmada",
-    PREPARANDO: "Preparando",
-    ENVIADA: "Enviada",
-    ENTREGADA: "Entregada",
-    CANCELADA: "Cancelada",
+export const ESTADOS_ORDEN: Record<OrdenEstadoApi, string> = {
+    PENDING: "Pendiente",
+    CONFIRMED: "Confirmada",
+    PAID: "Pagada",
+    SHIPPED: "Enviada",
+    DELIVERED: "Entregada",
+    CANCELLED: "Cancelada",
 };
 
 export function mapOrden(o: OrdenApi): Orden {

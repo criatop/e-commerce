@@ -6,24 +6,7 @@ import DataTable, { type Columna } from "../../components/common/DataTable";
 import { alertas } from "../../utils/alerta";
 import { formatearPrecio } from "../../utils/formato";
 import { mensajeError } from "../../utils/error";
-
-const ESTADOS: OrdenEstadoApi[] = [
-  "PENDIENTE",
-  "CONFIRMADA",
-  "PREPARANDO",
-  "ENVIADA",
-  "ENTREGADA",
-  "CANCELADA",
-];
-
-const ETIQUETAS: Record<OrdenEstadoApi, string> = {
-  PENDIENTE: "Pendiente",
-  CONFIRMADA: "Confirmada",
-  PREPARANDO: "Preparando",
-  ENVIADA: "Enviada",
-  ENTREGADA: "Entregada",
-  CANCELADA: "Cancelada",
-};
+import { ETIQUETAS, TRANSICIONES } from "./estadosOrden";
 
 export default function AdminOrdenes() {
   const [ordenes, setOrdenes] = useState<OrdenApi[]>([]);
@@ -96,10 +79,11 @@ export default function AdminOrdenes() {
         <select
           className="form-select form-select-sm"
           value={o.status}
-          disabled={actualizando === o.id}
+          disabled={actualizando === o.id || TRANSICIONES[o.status].length === 0}
           onChange={(e) => void cambiarEstado(o, e.target.value as OrdenEstadoApi)}
         >
-          {ESTADOS.map((estado) => (
+          <option value={o.status}>{ETIQUETAS[o.status] ?? o.status} (actual)</option>
+          {TRANSICIONES[o.status].map((estado) => (
             <option key={estado} value={estado}>
               {ETIQUETAS[estado]}
             </option>

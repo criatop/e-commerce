@@ -11,12 +11,12 @@ import { mensajeError } from "../../utils/error";
 import type { OrdenEstadoApi } from "../../api/types";
 
 const ETIQUETAS: Record<OrdenEstadoApi, string> = {
-  PENDIENTE: "Pendiente",
-  CONFIRMADA: "Confirmada",
-  PREPARANDO: "Preparando",
-  ENVIADA: "Enviada",
-  ENTREGADA: "Entregada",
-  CANCELADA: "Cancelada",
+  PENDING: "Pendiente",
+  CONFIRMED: "Confirmada",
+  PAID: "Pagada",
+  SHIPPED: "Enviada",
+  DELIVERED: "Entregada",
+  CANCELLED: "Cancelada",
 };
 
 export default function AdminDashboard() {
