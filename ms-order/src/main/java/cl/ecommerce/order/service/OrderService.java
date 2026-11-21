@@ -163,7 +163,8 @@ public class OrderService {
 
         try {
             shippingClient.create(new ShipmentRequest(order.getId().toString(), userId,
-                    request.shippingAddress(), request.shippingComuna(), request.shippingRegion()));
+                    request.shippingAddress(), request.shippingComuna(), request.shippingRegion(),
+                    request.shippingRegion(), request.shippingComuna()));
         } catch (Exception e) {
             log.error("Fallo envio orden {}: {}", order.getId(), e.getMessage());
             safeRefund(order);

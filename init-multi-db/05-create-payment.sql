@@ -1,12 +1,10 @@
 \c payment_db;
-
 -- 1. ELIMINACIÓN
 DROP TABLE IF EXISTS payments;
-
 -- 2. TABLAS MAESTRAS
 CREATE TABLE payments (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id        UUID NOT NULL,
+    order_id        UUID NOT NULL UNIQUE,
     user_id         VARCHAR(100) NOT NULL,
     amount          DECIMAL(12,2) NOT NULL,
     method          VARCHAR(20) NOT NULL CHECK (method IN ('CREDIT_CARD','DEBIT_CARD','PAYPAL','TRANSFER','WEBPAY')),
@@ -16,7 +14,6 @@ CREATE TABLE payments (
     card_last_four  VARCHAR(4),
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 -- 3. INSERCIÓN DE DATOS
 INSERT INTO payments (order_id, user_id, amount, method, status, transaction_id, card_last_four) VALUES
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'cliente1@gmail.com',  1459970, 'CREDIT_CARD', 'COMPLETED', 'TXN-20240101-001', '4532'),

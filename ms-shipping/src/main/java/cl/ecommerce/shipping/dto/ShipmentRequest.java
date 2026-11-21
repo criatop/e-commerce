@@ -7,6 +7,8 @@ public record ShipmentRequest(
         @NotBlank String userId,
         @NotBlank String address,
         @NotBlank String city,
-        @NotBlank String postalCode
+        String postalCode,
+        String region,
+        String comuna
 ) {
 }
