@@ -206,11 +206,9 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 3\n}" },
-            "url": "{{baseUrl}}/api/v1/cart/{{uid}}/items/{{productId}}"
+            "url": "{{baseUrl}}/api/v1/cart/{{uid}}/items/{{productId}}?quantity=3"
           }
         },
         {

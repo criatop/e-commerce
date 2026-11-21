@@ -120,7 +120,7 @@ sequenceDiagram
 
 ## 5. Carrito anónimo → sesión
 
-- Sin sesión, el carrito se guarda en `localStorage` (`chic_carrito_pendiente`) como `[{ productId, quantity }]` (UUIDs como string).
+- Sin sesión, el carrito se guarda en `localStorage` (`chic_carrito_pendiente`) como `[{ productId, cantidad }]` (UUIDs como string); `CartContext` mapea `cantidad` a `quantity` al enviar el merge.
 - Al iniciar sesión, `CartContext` envía `POST /api/v1/cart/{uid}/merge` con esa lista.
 - `ms-cart` consulta `ms-product` para validar precios y `available`, suma cantidades para productos repetidos y recorta al stock disponible.
 - Después del merge se limpia `chic_carrito_pendiente`.
