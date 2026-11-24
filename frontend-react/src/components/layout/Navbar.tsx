@@ -2,11 +2,13 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { useTablasMaestras } from "../../hooks/useTablasMaestras";
 
 export default function Navbar() {
   const [texto, setTexto] = useState("");
   const { sesion, iniciales, esPersonal, logout } = useAuth();
   const { totalItems } = useCart();
+  const { categorias } = useTablasMaestras();
   const navegar = useNavigate();
 
   function buscar(evento: FormEvent) {
@@ -92,10 +94,14 @@ export default function Navbar() {
 
       <nav className="main-nav">
         <Link to="/">INICIO</Link>
-        <Link to="/productos?categoria=1">COLLARES</Link>
-        <Link to="/productos?categoria=2">PULSERAS</Link>
-        <Link to="/productos?categoria=3">AROS</Link>
-        <Link to="/productos?categoria=5">ACCESORIOS</Link>
+        {categorias.datos.map((categoria) => (
+          <Link
+            key={String(categoria.id)}
+            to={`/productos?categoria=${encodeURIComponent(String(categoria.id))}`}
+          >
+            {categoria.nombre.toUpperCase()}
+          </Link>
+        ))}
         <Link to="/productos">TODOS</Link>
         <Link to="/nosotros">NOSOTROS</Link>
         <Link to="/contacto">CONTACTO</Link>

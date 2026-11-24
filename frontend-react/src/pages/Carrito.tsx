@@ -16,7 +16,7 @@ export default function Carrito() {
     const { regiones, comunasDe } = useTablasMaestras();
     const [abierto, setAbierto] = useState(false);
     const [envio, setEnvio] = useState("retiro");
-    const [pago, setPago] = useState("webpay");
+    const [pago, setPago] = useState(METODOS_PAGO[0].valor);
     const [entrega, setEntrega] = useState<DatosEntrega>({
         nombre: sesion ? `${sesion.nombre} ${sesion.apellidos}`.trim() : "",
         direccion: "",
