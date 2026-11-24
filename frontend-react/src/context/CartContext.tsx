@@ -15,11 +15,11 @@ export const METODOS_ENVIO = [
     { valor: "express", titulo: "Despacho express", detalle: "1 a 2 días hábiles", costo: 4990 },
 ];
 
+// Los valores deben coincidir con el enum PaymentMethod de ms-payment.
 export const METODOS_PAGO = [
-    { valor: "webpay", titulo: "Tarjeta de crédito / débito", detalle: "Pago seguro a través de Webpay" },
-    { valor: "transferencia", titulo: "Transferencia bancaria", detalle: "Te enviamos los datos por correo" },
-    { valor: "contraentrega", titulo: "Pago contra entrega", detalle: "Paga al recibir tu pedido" },
-    { valor: "paypal", titulo: "PayPal", detalle: "Pago internacional con PayPal" },
+    { valor: "CREDIT_CARD", titulo: "Tarjeta de crédito / débito", detalle: "Pago seguro a través de Webpay" },
+    { valor: "TRANSFER", titulo: "Transferencia bancaria", detalle: "Te enviamos los datos por correo" },
+    { valor: "PAYPAL", titulo: "PayPal", detalle: "Pago internacional con PayPal" },
 ];
 
 export interface DatosEntrega {
